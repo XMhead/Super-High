@@ -1,0 +1,50 @@
+name: release
+
+# 推送到 v* 标签（如 v0.1.0）时自动构建 Windows 安装包并创建 GitHub Release。
+# 只在公开 main 分支的 tag 上触发；private 分支永远不会推送，不会触发本流程。
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build and publish release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Super High ${{ github.ref_name }}'
+          releaseBody: |
+            Super High ${{ github.ref_name }} Windows 安装包。
+
+            - 下载 `*-setup.exe` 后双击安装（Windows 11）。
+            - 安装包为源码仓库自动构建产物。
+          releaseDraft: false
+          prerelease: false

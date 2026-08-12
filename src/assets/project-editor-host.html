@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <!-- superhigh-editor-init -->
+  <style>
+    :root { color-scheme: dark; font-family: var(--font-ui, "Segoe UI", "Microsoft YaHei UI", sans-serif); }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--color-text-primary); background: var(--color-bg-primary); }
+    .shell { height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+    nav { display: flex; min-height: 40px; gap: 1px; overflow-x: auto; border-bottom: 1px solid var(--color-border); background: var(--surface-panel-strong); }
+    button { flex: none; border: 0; border-bottom: 2px solid transparent; padding: 0 13px; color: var(--color-text-secondary); background: transparent; font: inherit; cursor: pointer; }
+    button:hover { background: var(--color-bg-hover); color: var(--color-text-primary); }
+    button.active { border-bottom-color: var(--color-accent-blue); color: var(--color-text-primary); }
+    iframe { width: 100%; height: 100%; border: 0; background: var(--color-bg-primary); }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <nav id="pages" aria-label="项目编辑器页面"></nav>
+    <iframe id="page" sandbox="allow-scripts" title="项目编辑器"></iframe>
+  </main>
+  <script>
+    const pagesNode = document.getElementById('pages')
+    const frame = document.getElementById('page')
+    let pages = []
+    let activeTheme = null
+    const editorBaseStyle = `<style id="superhigh-editor-base">
+      :root { color-scheme: dark; font-family: var(--font-ui); }
+      * { box-sizing: border-box; }
+      body { min-height: 100vh; margin: 0; color: var(--color-text-primary); background: var(--color-bg-primary); }
+      button, input, select, textarea { font: inherit; }
+      button, .sh-button { min-height: 30px; padding: 0 10px; border: 1px solid var(--color-border); border-radius: 4px; color: var(--color-text-secondary); background: var(--surface-panel-strong); cursor: pointer; }
+      button:hover, .sh-button:hover { color: var(--color-text-primary); background: var(--color-bg-hover); }
+      button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 1px solid var(--color-accent-blue); outline-offset: -1px; }
+      input, select, textarea, .sh-input { min-height: 30px; padding: 5px 8px; border: 1px solid var(--color-border); border-radius: 4px; color: var(--color-text-primary); background: var(--color-input-bg); }
+      textarea, pre, code, .sh-mono { font-family: var(--font-mono); }
+      .sh-toolbar { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 5px 8px; overflow-x: auto; border-bottom: 1px solid var(--color-border); background: var(--surface-panel-strong); }
+      .sh-panel { border: 1px solid var(--color-border); border-radius: 4px; background: var(--surface-panel); }
+      .sh-status { padding: 6px 8px; color: var(--color-text-secondary); border: 1px solid var(--surface-divider-muted); border-radius: 4px; background: var(--surface-panel-soft); }
+    </style>`
+    const pageThemeClient = `<script>
+      (() => {
+        const applyTheme = (data) => {
+          if (data?.type !== 'superhigh-editor:theme' || !data.vars) return
+          const root = document.documentElement
+          Object.entries(data.vars).forEach(([name, value]) => root.style.setProperty(name, value))
+          root.style.colorScheme = data.colorScheme || 'dark'
+          root.dataset.themeId = data.themeId || ''
+        }
+        window.addEventListener('message', ({ data }) => applyTheme(data))
+        window.parent.postMessage({ type: 'superhigh-editor:theme-ready' }, '*')
+      })()
+    <\/script>`
+
+    function pageDocument(content) {
+      const injected = `${editorBaseStyle}${pageThemeClient}`
+      return /<head(?:\s[^>]*)?>/i.test(content)
+        ? content.replace(/<head(?:\s[^>]*)?>/i, (head) => `${head}${injected}`)
+        : `${injected}${content}`
+    }
+
+    function applyTheme(theme) {
+      if (!theme?.vars) return
+      Object.entries(theme.vars).forEach(([name, value]) => document.documentElement.style.setProperty(name, value))
+      document.documentElement.style.colorScheme = theme.colorScheme || 'dark'
+      document.documentElement.dataset.themeId = theme.themeId || ''
+    }
+
+    function postThemeToPage() {
+      if (activeTheme && frame.contentWindow) frame.contentWindow.postMessage(activeTheme, '*')
+    }
+
+    function selectPage(id) {
+      const selected = pages.find((page) => page.id === id)
+      if (!selected) return
+      frame.srcdoc = pageDocument(selected.content)
+      for (const button of pagesNode.querySelectorAll('button')) button.classList.toggle('active', button.dataset.id === id)
+    }
+
+    frame.addEventListener('load', postThemeToPage)
+
+    function render(nextPages) {
+      pages = nextPages
+      pagesNode.replaceChildren()
+      for (const page of pages) {
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.dataset.id = page.id
+        button.textContent = page.title
+        button.addEventListener('click', () => selectPage(page.id))
+        pagesNode.append(button)
+      }
+      if (pages.length) selectPage(pages[0].id)
+    }
+
+    const initial = window.__superhighEditorInit
+    if (initial?.theme) {
+      activeTheme = initial.theme
+      applyTheme(activeTheme)
+    }
+    if (Array.isArray(initial?.pages)) render(initial.pages)
+
+    window.addEventListener('message', (event) => {
+      const data = event.data || {}
+      if (data.type === 'superhigh-editor:init') render(Array.isArray(data.pages) ? data.pages : [])
+      if (data.type === 'superhigh-editor:theme') {
+        activeTheme = data
+        applyTheme(activeTheme)
+        postThemeToPage()
+      }
+      if (data.type === 'superhigh-editor:theme-ready' && event.source === frame.contentWindow) postThemeToPage()
+      if ((data.type === 'superhigh-editor:fs-result' || data.type === 'superhigh-editor:fs-error') && frame.contentWindow) frame.contentWindow.postMessage(data, '*')
+      if (data.type === 'superhigh-editor:fs' && event.source === frame.contentWindow) window.parent.postMessage(data, '*')
+      if (data.type === 'superhigh-editor:navigate' && event.source === frame.contentWindow && typeof data.pageId === 'string') selectPage(data.pageId)
+    })
+    window.parent.postMessage({ type: 'superhigh-editor:host-ready' }, '*')
+  </script>
+</body>
+</html>
