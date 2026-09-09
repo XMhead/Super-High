@@ -1,0 +1,24 @@
+# Super High 内置 dsh 配置模板。
+# setup-dsh.mjs 首次运行会把它复制到 ~/.dsh/settings.yaml（已存在则不覆盖）。
+# 默认 provider 复用 Codex CLI 的 OpenAI 官方 ChatGPT 登录；不配置 API Key 或中转端点。
+# 注意：dsh-tui 的 provider/model 和默认 preset 不从 settings.yaml 读取。
+# SuperHigh 会把 config.toml 当前路由同步到 ~/.dsh/profiles/dsh-tui/cordis.patch.yml。
+llm-pi-ai:
+  providers:
+    openai-codex:
+      displayName: OpenAI Codex (Official Login)
+      transport: sse
+      streamIdleTimeoutMs: 600000
+      retryPolicy:
+        mode: normal
+        maxRetries: 6
+        retryableCodes: [EMPTY_RESPONSE, RATE_LIMIT, SERVER, TIMEOUT]
+        backoff:
+          initialDelayMs: 1000
+          maxDelayMs: 30000
+          jitterRatio: 0.2
+agent-default-model:
+  provider: openai-codex
+  model: gpt-5.6-terra
+agent-presets:
+  default: router-flash
