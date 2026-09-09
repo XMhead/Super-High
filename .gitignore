@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-mobile/
+dist-ssr/
+src-tauri/target/
+src-tauri/target-superhigh-runtime-build/
+src-tauri/target-superhigh-terminal-actions-build/
+target/
+cargo-test-target/
+src-tauri/cargo-test-target*/
+src-tauri/target-codex-build*/
+
+# Runtime logs and generated reports
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Python test/cache output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+*.local
+*.tmp
+*.bak
+
+# OS/editor files
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Publish pipeline local state
+.publish-worktree/
+.publish-base.sha
+src-tauri/target-script-tools-staging/
