@@ -1,0 +1,533 @@
+use std::{path::Path, sync::Arc, time::Duration};
+
+use anyhow::{bail, Context};
+use serde::{Deserialize, Serialize};
+use tauri::AppHandle;
+
+use crate::{
+    project_services::{self, ProjectServiceStatus, ProjectServicesStartResult},
+    project_startup::{self, ProjectStartupMode},
+    project_terminal_actions,
+    terminal::SharedTerminalManager,
+};
+
+const PIPE_NAME: &str = r"\\.\pipe\SuperHigh.ServiceControl.v1";
+const SCHEMA: &str = "superhigh-service-control-v1";
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ServiceBridgeRequest {
+    pub operation: String,
+    pub project_path: String,
+    #[serde(default)]
+    pub service_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServiceBridgeResponse {
+    pub ok: bool,
+    pub receipt: Option<ServiceBridgeReceipt>,
+    pub error: Option<ServiceBridgeError>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServiceBridgeReceipt {
+    pub schema: String,
+    pub ok: bool,
+    pub operation: String,
+    pub changed: bool,
+    pub summary: String,
+    pub project_path: String,
+    pub services: Vec<ServiceBridgeService>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServiceBridgeService {
+    pub service_id: String,
+    pub status: String,
+    pub message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub process_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub process_exited: Option<bool>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ServiceBridgeError {
+    pub kind: String,
+    pub message: String,
+}
+
+pub fn start(app: AppHandle, terminal: SharedTerminalManager) {
+    #[cfg(windows)]
+    tauri::async_runtime::spawn(async move {
+        run_server(app, terminal).await;
+    });
+}
+
+pub fn send_request(request: &ServiceBridgeRequest) -> anyhow::Result<ServiceBridgeResponse> {
+    #[cfg(windows)]
+    {
+        return tauri::async_runtime::block_on(send_request_async(request));
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = request;
+        bail!("bridge unavailable: Super High service control is only available on Windows")
+    }
+}
+
+fn parse_request(raw: &str) -> anyhow::Result<ServiceBridgeRequest> {
+    let request: ServiceBridgeRequest =
+        serde_json::from_str(raw).context("invalid bridge request")?;
+    if !matches!(
+        request.operation.as_str(),
+        "status" | "start" | "restart"
+    ) {
+        bail!("invalid bridge operation: {}", request.operation);
+    }
+    if request.project_path.trim().is_empty() {
+        bail!("invalid bridge request: projectPath is required");
+    }
+    Ok(request)
+}
+
+fn execute_request(
+    app: &AppHandle,
+    terminal: &SharedTerminalManager,
+    request: ServiceBridgeRequest,
+) -> ServiceBridgeResponse {
+    match execute_request_inner(app, terminal, &request) {
+        Ok(receipt) => ServiceBridgeResponse {
+            ok: true,
+            receipt: Some(receipt),
+            error: None,
+        },
+        Err(error) => ServiceBridgeResponse {
+            ok: false,
+            receipt: None,
+            error: Some(ServiceBridgeError {
+                kind: error_kind(&error.to_string()).to_string(),
+                message: error.to_string(),
+            }),
+        },
+    }
+}
+
+fn execute_request_inner(
+    app: &AppHandle,
+    terminal: &SharedTerminalManager,
+    request: &ServiceBridgeRequest,
+) -> anyhow::Result<ServiceBridgeReceipt> {
+    let workspace = Path::new(request.project_path.trim());
+    if !workspace.is_absolute() {
+        bail!("invalid bridge request: projectPath must be absolute");
+    }
+    let config = project_startup::load_project_startup_config(workspace)?;
+    if config
+        .as_ref()
+        .is_some_and(|config| config.mode != ProjectStartupMode::Services)
+    {
+        bail!("project startup config is not a service chain");
+    }
+    let selected_service = if request.operation == "status" && request.service_id.is_none() {
+        None
+    } else {
+        selected_service_id(
+            config.as_ref(),
+            request.service_id.as_deref(),
+        )?
+    };
+
+    match request.operation.as_str() {
+        "status" => status_receipt(
+            request,
+            terminal,
+            config.as_ref(),
+            selected_service.as_deref(),
+        ),
+        "start" => {
+            let config = config.context("project startup config not found")?;
+            let started =
+                project_services::start_project_services(app, terminal, None, workspace, config)?;
+            Ok(start_receipt(
+                request,
+                started,
+                "服务链已交给 Super High 本地终端启动",
+            ))
+        }
+        "restart" => {
+            let service_id = selected_service
+                .context("restart requires --service because this project has multiple services")?;
+            let action = project_terminal_actions::load_project_terminal_actions(workspace)?
+                .into_iter()
+                .find(|action| {
+                    action.kind == "restart-project"
+                        && action.service_id.as_deref() == Some(service_id.as_str())
+                });
+            let input = action
+                .as_ref()
+                .and_then(|action| action.input.as_deref())
+                .unwrap_or("stop");
+            let delay = action
+                .as_ref()
+                .map(|action| action.restart_delay_ms)
+                .unwrap_or(5_000);
+            let started = project_services::restart_project_service(
+                app,
+                terminal,
+                None,
+                workspace,
+                Some(&service_id),
+                &format!("{input}\r"),
+                Duration::from_millis(delay),
+            )?;
+            Ok(start_receipt(
+                request,
+                started,
+                "已重启托管服务并重新启动服务链",
+            ))
+        }
+        _ => unreachable!("parse_request validates the operation"),
+    }
+}
+
+fn selected_service_id(
+    config: Option<&project_startup::ProjectStartupInfo>,
+    requested_service_id: Option<&str>,
+) -> anyhow::Result<Option<String>> {
+    let Some(service_id) = requested_service_id
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    else {
+        return Ok(config
+            .filter(|config| config.services.len() == 1)
+            .map(|config| config.services[0].id.clone()));
+    };
+    if !config.is_some_and(|config| {
+        config
+            .services
+            .iter()
+            .any(|service| service.id == service_id)
+    }) {
+        bail!("unknown service: {service_id}");
+    }
+    Ok(Some(service_id.to_string()))
+}
+
+fn status_receipt(
+    request: &ServiceBridgeRequest,
+    terminal: &SharedTerminalManager,
+    config: Option<&project_startup::ProjectStartupInfo>,
+    selected_service_id: Option<&str>,
+) -> anyhow::Result<ServiceBridgeReceipt> {
+    let services = config
+        .map(|config| config.services.as_slice())
+        .unwrap_or_default()
+        .iter()
+        .filter(|service| selected_service_id.map_or(true, |id| service.id == id))
+        .map(|service| {
+            let managed = terminal
+                .find_live_project_service_session(
+                    &service.name,
+                    Path::new(&service.working_directory),
+                )
+                .is_some();
+            ServiceBridgeService {
+                service_id: service.id.clone(),
+                status: if managed { "managed" } else { "stopped" }.to_string(),
+                message: None,
+                process_id: None,
+                process_exited: None,
+            }
+        })
+        .collect::<Vec<_>>();
+    let active_count = services
+        .iter()
+        .filter(|service| matches!(service.status.as_str(), "managed" | "running" | "starting"))
+        .count();
+    Ok(ServiceBridgeReceipt {
+        schema: SCHEMA.to_string(),
+        ok: true,
+        operation: request.operation.clone(),
+        changed: false,
+        summary: format!(
+            "bridge ready; {active_count}/{} configured services are active",
+            services.len()
+        ),
+        project_path: request.project_path.clone(),
+        services,
+    })
+}
+
+fn start_receipt(
+    request: &ServiceBridgeRequest,
+    result: ProjectServicesStartResult,
+    summary: &str,
+) -> ServiceBridgeReceipt {
+    ServiceBridgeReceipt {
+        schema: SCHEMA.to_string(),
+        ok: true,
+        operation: request.operation.clone(),
+        changed: true,
+        summary: summary.to_string(),
+        project_path: result.project_path,
+        services: result
+            .services
+            .into_iter()
+            .map(|service| ServiceBridgeService {
+                service_id: service.service_id,
+                status: project_service_status_name(&service.status).to_string(),
+                message: service.message,
+                process_id: None,
+                process_exited: None,
+            })
+            .collect(),
+    }
+}
+
+fn project_service_status_name(status: &ProjectServiceStatus) -> &'static str {
+    match status {
+        ProjectServiceStatus::Starting => "starting",
+        ProjectServiceStatus::Running => "running",
+        ProjectServiceStatus::ExternalRunning => "externalRunning",
+        ProjectServiceStatus::Failed => "failed",
+    }
+}
+
+fn error_kind(message: &str) -> &'static str {
+    if message.starts_with("unknown service:") {
+        "unknown_service"
+    } else if message.starts_with("invalid bridge")
+        || message.starts_with("invalid bridge operation")
+    {
+        "invalid_request"
+    } else {
+        "request_failed"
+    }
+}
+
+#[cfg(windows)]
+async fn run_server(app: AppHandle, terminal: SharedTerminalManager) {
+    use tokio::net::windows::named_pipe::ServerOptions;
+
+    let mut server = match ServerOptions::new()
+        .first_pipe_instance(true)
+        .create(PIPE_NAME)
+    {
+        Ok(server) => server,
+        Err(error) => {
+            eprintln!("[Super High] local service bridge unavailable (another instance may own it): {error}");
+            return;
+        }
+    };
+    loop {
+        if let Err(error) = server.connect().await {
+            eprintln!("[Super High] local service bridge connection failed: {error}");
+            continue;
+        }
+        let connected = server;
+        server = match ServerOptions::new().create(PIPE_NAME) {
+            Ok(server) => server,
+            Err(error) => {
+                eprintln!("[Super High] local service bridge could not create next pipe instance: {error}");
+                return;
+            }
+        };
+        let app = app.clone();
+        let terminal = Arc::clone(&terminal);
+        tauri::async_runtime::spawn(async move {
+            handle_client(connected, app, terminal).await;
+        });
+    }
+}
+
+#[cfg(windows)]
+async fn handle_client(
+    mut pipe: tokio::net::windows::named_pipe::NamedPipeServer,
+    app: AppHandle,
+    terminal: SharedTerminalManager,
+) {
+    use tokio::io::AsyncWriteExt;
+
+    let response = match read_json_line(&mut pipe).await {
+        Ok(raw) => match parse_request(&raw) {
+            Ok(request) => {
+                tokio::task::spawn_blocking(move || execute_request(&app, &terminal, request))
+                    .await
+                    .unwrap_or_else(|error| ServiceBridgeResponse {
+                        ok: false,
+                        receipt: None,
+                        error: Some(ServiceBridgeError {
+                            kind: "request_failed".to_string(),
+                            message: format!("bridge request task failed: {error}"),
+                        }),
+                    })
+            }
+            Err(error) => ServiceBridgeResponse {
+                ok: false,
+                receipt: None,
+                error: Some(ServiceBridgeError {
+                    kind: error_kind(&error.to_string()).to_string(),
+                    message: error.to_string(),
+                }),
+            },
+        },
+        Err(error) => ServiceBridgeResponse {
+            ok: false,
+            receipt: None,
+            error: Some(ServiceBridgeError {
+                kind: error_kind(&error.to_string()).to_string(),
+                message: error.to_string(),
+            }),
+        },
+    };
+    if let Ok(mut payload) = serde_json::to_vec(&response) {
+        payload.push(b'\n');
+        let _ = pipe.write_all(&payload).await;
+        let _ = pipe.flush().await;
+    }
+}
+
+#[cfg(windows)]
+async fn send_request_async(
+    request: &ServiceBridgeRequest,
+) -> anyhow::Result<ServiceBridgeResponse> {
+    use tokio::{io::AsyncWriteExt, net::windows::named_pipe::ClientOptions};
+
+    let mut pipe = ClientOptions::new()
+        .open(PIPE_NAME)
+        .map_err(classify_connection_error)?;
+    let mut payload = serde_json::to_vec(request)?;
+    payload.push(b'\n');
+    pipe.write_all(&payload)
+        .await
+        .map_err(classify_connection_error)?;
+    pipe.flush().await.map_err(classify_connection_error)?;
+    let raw = read_json_line(&mut pipe)
+        .await
+        .map_err(classify_connection_error)?;
+    serde_json::from_str(&raw).context("bridge returned an invalid response")
+}
+
+#[cfg(windows)]
+async fn read_json_line<T>(stream: &mut T) -> std::io::Result<String>
+where
+    T: tokio::io::AsyncRead + Unpin,
+{
+    use tokio::io::AsyncReadExt;
+
+    const LIMIT: usize = 64 * 1024;
+    let mut output = Vec::new();
+    let mut buffer = [0u8; 4096];
+    loop {
+        let size = stream.read(&mut buffer).await?;
+        if size == 0 {
+            break;
+        }
+        let take = buffer[..size]
+            .iter()
+            .position(|byte| *byte == b'\n')
+            .map(|index| index + 1)
+            .unwrap_or(size);
+        output.extend_from_slice(&buffer[..take]);
+        if output.len() > LIMIT {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "bridge payload is too large",
+            ));
+        }
+        if take < size || output.last() == Some(&b'\n') {
+            break;
+        }
+    }
+    if output.is_empty() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::UnexpectedEof,
+            "bridge closed without a response",
+        ));
+    }
+    Ok(String::from_utf8_lossy(&output).trim().to_string())
+}
+
+#[cfg(windows)]
+fn classify_connection_error(error: std::io::Error) -> anyhow::Error {
+    let kind = error.kind();
+    let code = error.raw_os_error();
+    if matches!(
+        kind,
+        std::io::ErrorKind::NotFound | std::io::ErrorKind::ConnectionRefused
+    ) || matches!(code, Some(2 | 233))
+    {
+        anyhow::anyhow!("bridge unavailable: start a newer Super High and retry")
+    } else if matches!(kind, std::io::ErrorKind::WouldBlock) || matches!(code, Some(231)) {
+        anyhow::anyhow!(
+            "bridge busy: Super High is handling another service request; retry shortly"
+        )
+    } else {
+        anyhow::anyhow!("bridge unavailable: {error}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        parse_request, selected_service_id, ServiceBridgeRequest,
+    };
+    use crate::project_startup::{
+        ProjectStartupInfo, ProjectStartupMode, ProjectStartupServiceInfo,
+    };
+
+    fn config() -> ProjectStartupInfo {
+        ProjectStartupInfo {
+            name: "Test".to_string(),
+            mode: ProjectStartupMode::Services,
+            script_path: None,
+            working_directory: None,
+            services: vec![ProjectStartupServiceInfo {
+                id: "server".to_string(),
+                name: "Server".to_string(),
+                script_path: Some("D:/server/start.bat".to_string()),
+                command_path: None,
+                args: Vec::new(),
+                working_directory: "D:/server".to_string(),
+                start_after: Vec::new(),
+                health_check: None,
+            }],
+        }
+    }
+
+    #[test]
+    fn parses_restart_request() {
+        let request = parse_request(
+            r#"{"operation":"restart","projectPath":"D:/server","serviceId":"server"}"#,
+        )
+        .unwrap();
+        assert_eq!(request.operation, "restart");
+        assert_eq!(request.service_id.as_deref(), Some("server"));
+    }
+
+
+    #[test]
+    fn rejects_unknown_service() {
+        let error = selected_service_id(Some(&config()), Some("missing")).unwrap_err();
+        assert!(error.to_string().starts_with("unknown service:"));
+    }
+
+
+    #[test]
+    fn request_serializes_with_camel_case_fields() {
+        let request = ServiceBridgeRequest {
+            operation: "status".to_string(),
+            project_path: "D:/server".to_string(),
+            service_id: Some("server".to_string()),
+        };
+        let json = serde_json::to_string(&request).unwrap();
+        assert!(json.contains("projectPath"));
+        assert!(json.contains("serviceId"));
+    }
+}
