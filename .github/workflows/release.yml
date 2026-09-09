@@ -1,0 +1,97 @@
+name: release
+
+# 推送到 v* 标签（如 v0.1.0）时自动构建 Windows 安装包并创建 GitHub Release。
+# 构建前核对标签只能指向公开 main 的当前提交。
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify public release source
+        shell: pwsh
+        run: |
+          git fetch origin main
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot fetch public main.' }
+          $releaseCommit = git rev-parse HEAD
+          $publicCommit = git rev-parse origin/main
+          if ($releaseCommit -ne $publicCommit) { throw 'Release tag must point to the current public main commit.' }
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Validate update release
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        shell: pwsh
+        run: |
+          if (-not $env:TAURI_SIGNING_PRIVATE_KEY) { throw 'Configure TAURI_SIGNING_PRIVATE_KEY before releasing.' }
+          node scripts/check-update-release.mjs $env:GITHUB_REF_NAME
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid update release configuration.' }
+
+      - name: Read release notes
+        id: notes
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          $changelog = Get-Content -LiteralPath CHANGELOG.md -Raw -Encoding UTF8
+          $section = [regex]::Match($changelog, '(?ms)^## \[' + [regex]::Escape($version) + '\][^\r\n]*\r?\n(.*?)(?=^## |^\[\d|\z)')
+          if (-not $section.Success) { throw 'Release version is missing from CHANGELOG.md.' }
+          $delimiter = [guid]::NewGuid().ToString()
+          "body<<$delimiter" >> $env:GITHUB_OUTPUT
+          $section.Groups[1].Value.Trim() >> $env:GITHUB_OUTPUT
+          "$delimiter" >> $env:GITHUB_OUTPUT
+
+      - name: Build and publish release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Super High ${{ github.ref_name }}'
+          releaseBody: ${{ steps.notes.outputs.body }}
+          releaseDraft: true
+          prerelease: false
+          args: --bundles nsis
+          includeUpdaterJson: true
+          updaterJsonPreferNsis: true
+
+      - name: Verify assets and publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $artifactDirectory = Join-Path $env:RUNNER_TEMP 'superhigh-update-release'
+          gh release download $env:GITHUB_REF_NAME --dir $artifactDirectory --pattern latest.json --pattern '*-setup.exe' --pattern '*-setup.exe.sig'
+          if ($LASTEXITCODE -ne 0) { throw 'Update release assets are incomplete.' }
+          node scripts/check-update-release.mjs $env:GITHUB_REF_NAME $artifactDirectory
+          if ($LASTEXITCODE -ne 0) { throw 'Update release assets failed validation.' }
+          gh release edit $env:GITHUB_REF_NAME --draft=false --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot publish the validated release.' }
