@@ -1,0 +1,48 @@
+# Super High DSH provider configuration.
+# OpenAI Codex OAuth is supplied by the existing Codex CLI ChatGPT login.
+version = 1
+active_provider = "openai-codex"
+active_model = "gpt-5.6-terra"
+[providers.openai-codex]
+display_name = "OpenAI Codex (Official Login)"
+[[providers.openai-codex.models]]
+id = "gpt-5.6-sol"
+name = "GPT-5.6-Sol"
+context_window = 272000
+input = ["text", "image"]
+
+[[providers.openai-codex.models]]
+id = "gpt-5.6-terra"
+name = "GPT-5.6-Terra"
+context_window = 272000
+input = ["text", "image"]
+
+[[providers.openai-codex.models]]
+id = "gpt-5.6-luna"
+name = "GPT-5.6-Luna"
+context_window = 272000
+input = ["text", "image"]
+
+[[providers.openai-codex.models]]
+id = "gpt-5.5"
+name = "GPT-5.5"
+context_window = 272000
+input = ["text", "image"]
+
+[[providers.openai-codex.models]]
+id = "gpt-5.4"
+name = "GPT-5.4"
+context_window = 272000
+input = ["text", "image"]
+
+[[providers.openai-codex.models]]
+id = "gpt-5.4-mini"
+name = "GPT-5.4-Mini"
+context_window = 272000
+input = ["text", "image"]
+
+[[providers.openai-codex.models]]
+id = "gpt-5.3-codex-spark"
+name = "GPT-5.3-Codex-Spark"
+context_window = 128000
+input = ["text"]
