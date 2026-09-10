@@ -1,0 +1,71 @@
+# Dependencies
+node_modules/
+vitepress-docs/node_modules/
+
+# Build output
+dist/
+dist-mobile/
+dist-ssr/
+src-tauri/target/
+src-tauri/target-script-tools-staging/
+src-tauri/target-superhigh-runtime-build/
+src-tauri/target-superhigh-terminal-actions-build/
+target/
+cargo-test-target/
+src-tauri/cargo-test-target*/
+src-tauri/target-codex-build*/
+vitepress-docs/docs/.vitepress/dist/
+vitepress-docs/docs/.vitepress/cache/
+
+# Runtime logs and generated reports
+.agent/tmp/
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+agent-harness/artifacts/
+
+# Python test/cache output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local AI/tool runtime mirrors
+.claude/
+.gemini/
+.opencode/
+.codebuddy/
+.superhigh/
+.superpowers/
+.worktrees/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+*.local
+*.tmp
+*.bak
+
+# Personal local reports (never publish)
+storage_analysis.json
+storage-report.html
+
+# Publish pipeline local state
+.publish-worktree/
+.publish-base.sha
+
+# OS/editor files
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Local release artifacts and persistent public build cache
+.agent/cache/public-release/
