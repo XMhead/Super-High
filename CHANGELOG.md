@@ -1,0 +1,716 @@
+# 更新日志
+
+记录版本的用户可见变化。新发布说明按固定分类提供中文和英文，版本号与 GitHub Release 标签保持一致。
+
+## [0.1.31] - 2026-09-12
+
+### 问题修复
+
+- 电脑关闭 CLI 会话后，手机自动移除对应标签并切换到剩余会话，不再停留在结束警告页；电脑新建的会话也会自动同步。
+- 手机终端使用完整可用高度显示历史与当前画面，取消整块缩放和双层滚动；修复 CLI 重绘时模型状态文字重叠，滚动查看历史时保持阅读位置。
+
+---
+
+### Bug Fixes
+
+- Automatically remove mobile tabs when their CLI sessions are closed on the desktop and select a remaining session instead of showing an ended-session warning. Newly created desktop sessions also appear automatically.
+- Use the full mobile terminal height for history and the current screen, removing whole-terminal scaling and nested scrolling. Fix overlapping model status text during CLI repaints and preserve the reading position when browsing history.
+
+## [0.1.30] - 2026-09-12
+
+### 体验优化
+
+- 手机终端在新输出到达后及时更新，取消每批绘制后的固定等待，并减少 Host 读取历史输出时的重复复制。
+
+### 问题修复
+
+- 修复手机查看共用 CLI 会话后电脑终端错位的问题：手机跟随实际终端行列数调整显示字号，进入、退出、键盘弹起和屏幕变化不再修改电脑终端尺寸。
+
+---
+
+### Improvements
+
+- Update mobile terminals promptly when output arrives, removing the fixed delay after each rendered batch and reducing repeated history copying on the Host.
+
+### Bug Fixes
+
+- Fix desktop terminal corruption after viewing a shared CLI session on a phone. The phone adjusts its font to the actual terminal grid; opening or leaving the view, showing the keyboard, and screen changes no longer resize the desktop terminal.
+
+## [0.1.29] - 2026-09-11
+
+### 新增功能
+
+- CLI 支持创建真实终端会话、发送文本和 Ctrl+C 等按键、调整终端尺寸及关闭指定会话，可结合会话状态与日志完成自动交互测试。
+
+---
+
+### New Features
+
+- The CLI can create real terminal sessions, send text and keys such as Ctrl+C, resize terminals, and close a selected session. Combine these commands with session status and logs for automated interaction testing.
+
+## [0.1.28] - 2026-09-11
+
+### 新增功能
+
+- Windows 交互卸载时可选择同时清理已登记项目的 `.superhigh` 数据，并查看具体目录；默认保留数据，静默卸载和升级不会删除项目数据。项目数据登记独立于最近项目列表，并兼容旧版仍保存的最近项目。
+
+### 升级说明
+
+- 已从旧版最近项目记录移除，或移动后尚未重新打开的项目，需要在新版中重新打开，才能登记其 `.superhigh` 目录供卸载清理。
+
+---
+
+### New Features
+
+- During interactive Windows uninstallation, optionally clean up registered projects' `.superhigh` data and review their directory paths. Data is retained by default and is not deleted during silent uninstallation or upgrades. Project data registration is independent of the recent-project list and also imports recent projects still saved by earlier versions.
+
+### Upgrade Notes
+
+- Reopen projects in the new version if they were removed from an earlier version's recent-project history or moved without being reopened, so their `.superhigh` directories can be registered for uninstall cleanup.
+
+## [0.1.27] - 2026-09-11
+
+### 新增功能
+
+- 更新后首次打开工作区时，在代码预览中自动打开本版本更新日志 Markdown 标签，正常关闭后同版本不再自动打开；设置中可查看当前与历史版本的真实更新内容，浏览器预览直接读取项目更新日志。
+
+### 问题修复
+
+- 缩短手机连接检测与终端同步的超时等待，电脑 Host 恢复后自动刷新会话列表，避免长时间停留在旧会话。
+- 修复手机同步和浏览器预连接被误报为“HTTP 请求无效”的问题，正确等待分段到达的请求，避免消息已经发送却出现连接错误提示。
+- 内嵌 Codex 关闭 Astra 输入框星点装饰，避免电脑和手机终端出现浮动星点与文字遮挡，保留正常工作状态动画。
+
+---
+
+### New Features
+
+- Open the current release notes as a Markdown tab in the code preview when first opening a workspace after an update; closing the tab prevents it from reopening automatically for that version. Browse actual current and past release notes in settings, with browser previews reading the project changelog directly.
+
+### Bug Fixes
+
+- Shorten mobile connection checks and terminal polling timeouts, and refresh sessions when the computer Host recovers to avoid remaining on stale sessions.
+- Fix mobile synchronization and browser preconnections being reported as invalid HTTP requests by waiting for fragmented requests, avoiding connection errors after a message was sent.
+- Disable Astra composer sparkles in embedded Codex terminals to prevent floating dots and obscured text on desktop and mobile, while retaining normal working-status animations.
+
+## [0.1.26] - 2026-09-11
+
+### 体验优化
+
+- 手机资源树改为紧凑单行并支持一键收起全部文件夹，历史工作区选择移至资源管理器标题栏，点击直接弹窗选择。
+- 手机 CLI 启动按钮移入紧凑标题栏，保留按钮边框，移除重复的工作区名称和连接状态；刷新与历史对话统一收纳至右上角菜单。
+- 桌面与手机 CLI 入口使用对应产品图标；手机会话标签改为无间隔方形，直接关闭会话，并在无会话时显示带 CLI 启动按钮的居中卡片。
+
+### 问题修复
+
+- 修复手机代码文件缺少语法高亮的问题，支持 YAML 等代码格式，长行可横向滚动。
+- 手机终端根据可用宽度缩小字号，以 80 列为目标适配，减少内容被截断。
+- 修复手机新建 CLI 会话后电脑仍停留在上一会话的问题，电脑现在自动选中新建会话。
+
+---
+
+### Improvements
+
+- Use compact single-line mobile resource rows and collapse all folders at once; move workspace history to the resource manager header and open it directly in a selection dialog.
+- Move mobile CLI launchers into a compact header with button borders, remove repeated workspace names and connection labels, and group refresh and conversation history in the top-right menu.
+- Use product icons for desktop and mobile CLI launchers; use square mobile session tabs without gaps, close sessions directly, and show a centered card with CLI launch buttons when no session is active.
+
+### Bug Fixes
+
+- Fix missing syntax highlighting for mobile code files, including YAML, and allow horizontal scrolling for long lines.
+- Scale mobile terminal text to the available width with an 80-column target to reduce clipped content.
+- Fix the desktop staying on the previous session after a new CLI session is created on mobile; the desktop now selects the new session automatically.
+
+## [0.1.25] - 2026-09-11
+
+### 体验优化
+
+- 手机资源文件夹支持原地展开与收起，保留同级文件，自动刷新已展开目录；查看文件后返回保留展开状态和滚动位置。
+- 手机终端支持点击命令菜单中的斜杠条目填入命令并聚焦，按确认键继续操作 CLI 原生菜单。
+
+### 问题修复
+
+- 修复点击手机终端斜杠或指令操作按钮后键盘焦点未返回终端的问题。
+- 修复手机终端快速输入及退格、删除时丢失按键的问题；切换或退出会话后不再发送迟到输入。
+- 修复浅色主题下终端选区难以辨认的问题，增强选区背景并保持选中文字清晰，失去焦点后仍可辨认选区。
+
+---
+
+### Improvements
+
+- Expand and collapse mobile resource folders in place, keep sibling files visible, and refresh expanded directories automatically; preserve expansion and scroll position when returning from a file.
+- Tap slash entries in the mobile terminal command menu to fill the command and focus input, then confirm to continue through the native CLI menu.
+
+### Bug Fixes
+
+- Fix mobile terminal keyboard focus not returning after tapping slash or command action buttons.
+- Fix dropped keystrokes during rapid mobile terminal typing, backspace, and delete; discard late input after switching or leaving a session.
+- Fix hard-to-see terminal selections in light themes with stronger selection backgrounds and readable selected text, keeping selections visible when unfocused.
+
+## [0.1.24] - 2026-09-11
+
+### 体验优化
+
+- 手机资源文件夹支持原地展开与收起，保留同级文件，自动刷新已展开目录；查看文件后返回保留展开状态和滚动位置。
+- 手机终端支持点击命令菜单中的斜杠条目填入命令并聚焦，按确认键继续操作 CLI 原生菜单。
+
+### 问题修复
+
+- 修复手机终端快速输入及退格、删除时丢失按键的问题；切换或退出会话后不再发送迟到输入。
+- 修复浅色主题下终端选区难以辨认的问题，增强选区背景并保持选中文字清晰，失去焦点后仍可辨认选区。
+
+---
+
+### Improvements
+
+- Expand and collapse mobile resource folders in place, keep sibling files visible, and refresh expanded directories automatically; preserve expansion and scroll position when returning from a file.
+- Tap slash entries in the mobile terminal command menu to fill the command and focus input, then confirm to continue through the native CLI menu.
+
+### Bug Fixes
+
+- Fix dropped keystrokes during rapid mobile terminal typing, backspace, and delete; discard late input after switching or leaving a session.
+- Fix hard-to-see terminal selections in light themes with stronger selection backgrounds and readable selected text, keeping selections visible when unfocused.
+
+## [0.1.23] - 2026-09-11
+
+### 体验优化
+
+- 手机 Markdown 文件支持点击 MARKDOWN 标记切换原文与预览，并记住显示偏好；资源列表和搜索结果使用与桌面一致的文件类型图标。
+- 精简手机会话列表，使用单行短会话 ID；斜杠按钮直接打开 CLI 原生命令菜单，并提供上下选择、确认和退出操作。
+
+### 问题修复
+
+- 修复电脑本机 HTML 手机预览仍需手动填写 Host 地址和令牌的问题，现在自动读取本机配置并连接。
+- 修复浅色主题下终端文字难以辨认的问题，将 CLI 输出的深色中性背景适配为主题浅色背景，同时保留文字和状态色；桌面和手机终端同步生效，切换主题后已有输出同步更新。
+
+---
+
+### Improvements
+
+- Toggle mobile Markdown files between source and preview with the MARKDOWN badge and remember the preference; use the same file-type icons as desktop in resource lists and search results.
+- Simplify the mobile session list with short, single-line session IDs; open the native CLI command menu with the slash button and provide up, down, confirm, and exit controls.
+
+### Bug Fixes
+
+- Fix local HTML mobile previews requiring manual Host addresses and tokens; previews now read the local configuration and connect automatically.
+- Fix hard-to-read terminal text in light themes by adapting dark neutral CLI backgrounds to the theme's light background while preserving text and status colors; apply this on desktop and mobile, including existing output after theme changes.
+
+## [0.1.22] - 2026-09-11
+
+### 体验优化
+
+- superhigh-html 增加真实手机预览入口，连接电脑 Host 自动跟随桌面工作区变化，并更新打开的资源目录。
+
+---
+
+### Improvements
+
+- Add a live mobile preview entry to superhigh-html, following desktop workspace changes through the Host and refreshing the visible resource directory.
+
+## [0.1.21] - 2026-09-11
+
+### 体验优化
+
+- 新手教程补充小管家的显示与隐藏开关，以及聊天面板的展开和收起操作。
+
+### 问题修复
+
+- 修复内置终端将 Alt+方向键错误转换为 Ctrl+方向键的问题，恢复 Codex CLI 等终端应用中的对应快捷键。
+
+---
+
+### Improvements
+
+- Expand the beginner tutorial with instructions for showing or hiding the assistant and expanding or collapsing its chat panel.
+
+### Bug Fixes
+
+- Fix the embedded terminal incorrectly converting Alt+arrow keys to Ctrl+arrow keys, restoring the corresponding shortcuts in Codex CLI and other terminal applications.
+
+## [0.1.20] - 2026-09-10
+
+### 体验优化
+
+- 移除左侧活动栏的编辑器预览入口；顶部编辑器预览按钮支持再次点击返回工作区。
+- 本地终端增加新建 PowerShell 入口，任意项目均可直接运行命令，无需配置或启动 Minecraft 服务。
+- 移除对话工作区顶部的设置标签。
+- 移除早期画布功能及其活动栏入口。
+
+### 问题修复
+
+- 修复启动页最近项目较多时顶部内容被裁切的问题，超高内容可滚动，长项目路径自动换行。
+
+### 其他变更
+
+- 发布首个 Windows Beta 包（Beta 1）；此前 Windows Release 标记为 Alpha。
+
+---
+
+### Improvements
+
+- Remove the editor preview entry from the activity bar; click the top editor preview button again to return to the workspace.
+- Add a New PowerShell action to local terminals so any project can run commands without configuring or starting Minecraft services.
+- Remove the Settings tab from the top of the conversation workspace.
+- Remove the early canvas feature and its activity bar entry.
+
+### Bug Fixes
+
+- Fix clipped startup page content when many recent projects are listed; allow scrolling for tall content and wrap long project paths.
+
+### Other Changes
+
+- Publish the first Windows Beta package (Beta 1); label previous Windows releases as Alpha.
+
+## [0.1.19] - 2026-09-10
+
+### 体验优化
+
+- 将渠道检测移至设置，移除重复的分组信息，集中管理渠道状态。
+- 精简终端支持、配置入口及其依赖，统一桌面与手机端的可用终端选项。
+
+---
+
+### Improvements
+
+- Move provider checks into Settings and remove duplicate group information to centralize provider status management.
+- Simplify terminal support, configuration entry points, and dependencies, with consistent available terminal options on desktop and mobile.
+
+## [0.1.18] - 2026-09-10
+
+### 新增功能
+
+- 设置 → 配置新增系统图片查看器开关，默认关闭；手动启用后，可在 Windows 中选择 Super High 打开图片，关闭后移除该注册。
+
+---
+
+### New Features
+
+- Add a system image viewer toggle under Settings → Configuration, disabled by default. Enable it manually to make Super High available for opening images in Windows; disabling it removes the registration.
+
+## [0.1.16] - 2026-09-10
+
+### 问题修复
+
+- 电脑端记住手机连接服务的开启状态，重启后使用原地址配置和配对令牌恢复服务；主动关闭后保持关闭。
+- 手机端在电脑重启或连接中断后自动重试连接，主动退出连接后停止重连。
+
+### 升级说明
+
+- 从旧版升级后，请在新版电脑端开启一次手机连接服务，之后即可随电脑端启动自动恢复。
+- 本次只恢复连接，不恢复电脑端重启前的终端进程或任务。
+
+---
+
+### Bug Fixes
+
+- Remember whether the desktop mobile connection service is enabled and restore it with the saved address settings and pairing token after restart; keep it disabled after an explicit stop.
+- Automatically retry mobile connections after a desktop restart or connection loss, and stop reconnecting after an explicit disconnect.
+
+### Upgrade Notes
+
+- After upgrading from an older version, enable the mobile connection service once in the new desktop version to allow automatic restoration on subsequent launches.
+- This update restores connections only; it does not restore terminal processes or tasks from before a desktop restart.
+
+## [0.1.15] - 2026-09-10
+
+### 体验优化
+
+- 移除 CLI 终端四周的留边，让终端内容贴合面板。
+- 移除左侧活动栏的文档预览和终端按钮。
+
+### 问题修复
+
+- 修复 CLI 终端标签之间的间隙导致选中背景显示不完整的问题。
+
+---
+
+### Improvements
+
+- Remove the outer spacing around CLI terminals so their content fits the panel.
+- Remove the document preview and terminal buttons from the left activity bar.
+
+### Bug Fixes
+
+- Fix gaps between CLI terminal tabs that made the selected background appear incomplete.
+
+## [0.1.14] - 2026-09-10
+
+### 体验优化
+
+- Android 支持在应用内检查、下载更新并打开系统安装界面，手机应用更新无需连接电脑。
+- 手机设置分别显示 Android 应用与电脑更新；旧版安卓外壳和浏览器提供 APK 下载直链，无需在 GitHub 页面寻找附件。
+
+### 问题修复
+
+- 正式 Release 必须包含同版本 Android 安装包，缺少 APK 时阻止发布，避免手机版更新遗漏。
+
+### 升级说明
+
+- 旧版 Android 应用需先下载并安装本版 APK；后续可使用应用内更新，安装仍需在 Android 系统界面确认。
+
+---
+
+### Improvements
+
+- Check and download Android updates in the app, then open the system installer without connecting to a desktop.
+- Mobile settings distinguish Android app updates from desktop updates; older Android shells and browsers offer direct APK downloads without searching GitHub release assets.
+
+### Bug Fixes
+
+- Require a matching Android APK before publishing each stable Release to prevent missing mobile updates.
+
+### Upgrade Notes
+
+- Download and install this APK once on older Android versions to enable in-app updates; Android system confirmation is still required for installation.
+
+## [0.1.13] - 2026-09-10
+
+### 问题修复
+
+- 修复桌面 Codex 终端在显示缩放变化后文字缩小、画面偏移的问题。
+- 修复终端尺寸计算包含外侧留白导致底部内容被裁切的问题。
+
+---
+
+### Bug Fixes
+
+- Fix shrunken text and shifted content in the desktop Codex terminal after display scaling changes.
+- Fix terminal sizing that counted outer spacing as usable space and clipped content at the bottom.
+
+## [0.1.12] - 2026-09-10
+
+### 体验优化
+
+- 文件管理器复用默认工作区的资源管理器，统一文件树样式、展开状态和可调宽度，移除重复的目录标签与根目录行。
+- 移除文件管理器的重复标题、路径、选择状态和预览标题行，让文件网格与编辑器顶部对齐，并保持窄窗口下工具栏单行显示。
+
+---
+
+### Improvements
+
+- Reuse the default workspace explorer in the file manager, sharing tree styling, expansion state, and adjustable width while removing duplicate directory tabs and the root row.
+- Remove redundant file manager headings, paths, selection status, and preview headings; align the file grid and editor at the top and keep the toolbar on one row in narrow windows.
+
+## [0.1.11] - 2026-09-10
+
+### 新增功能
+
+- 公开版提供 Minecraft 物品搜索、怪物与 DragonCore 等现有工具。
+
+### 体验优化
+
+- 根据当前项目实际存在的插件目录和配置显示相关工具，物品搜索按钮在发现 NI 或 MM 物品目录时显示。
+
+### 问题修复
+
+- 移除物品图标、品质框和怪物库的固定服务器路径回退，避免读取其他项目的数据。
+
+---
+
+### New Features
+
+- Include the existing Minecraft item search, mob and DragonCore tools in the public release.
+
+### Improvements
+
+- Show tools according to the plugin directories and configuration present in the current project. Show item search when an NI or MM item directory is found.
+
+### Bug Fixes
+
+- Remove fixed server path fallbacks for item icons, quality frames and mob libraries to avoid reading another project's data.
+
+## [0.1.10] - 2026-09-10
+
+### 新增功能
+
+- 手机 Markdown 文件支持在渲染预览和原文之间切换。
+
+### 体验优化
+
+- 手机会话改用横向标签栏切换，并在标签内提供关闭入口；刷新和历史对话收进更多菜单，移除独立快捷键行。
+- 调整手机输入区与底部安全区域的间距。
+
+### 问题修复
+
+- 手机新建 CLI 会话后立即通知电脑同步会话列表。
+
+### 升级说明
+
+- 会话同步需要更新电脑 Host；手机页面随 Host 更新，现有安卓 App 刷新连接即可加载新界面。
+- 自定义指令按钮尚未接入操作，终端画面直接键入仍未接入发送；请继续使用底部输入框发送文本。
+
+---
+
+### New Features
+
+- Switch mobile Markdown files between rendered preview and source text.
+
+### Improvements
+
+- Switch mobile sessions through horizontal tabs with a close action. Move refresh and conversation history into the more menu and remove the separate shortcut row.
+- Adjust spacing between the mobile composer and the bottom safe area.
+
+### Bug Fixes
+
+- Notify the desktop immediately after creating a CLI session on mobile so its session list stays synchronized.
+
+### Upgrade Notes
+
+- Update the desktop Host for session synchronization. Mobile pages update with the Host; reconnect the existing Android app to load the new interface.
+- The custom command button is not connected yet, and typing directly in the terminal display is not forwarded. Continue sending text through the bottom composer.
+## [0.1.9] - 2026-09-10
+
+### 新增功能
+
+- 设置新增 CLI 显示开关，电脑和手机共用设置；关闭后直接隐藏启动入口，保留已有会话。
+- 手机输入框加号支持拍照、相册和文件，附件上传到电脑工作区的 `.superhigh/pasted-images`，支持重试、移除和仅发送附件路径。
+
+### 体验优化
+
+- 手机使用 Super High 完整主题列表，连接后跟随电脑主题；手机选择主题也会同步到电脑。
+- 附件依次上传，发送失败保留输入和附件；切换工作区或电脑时隔离上传结果与设置响应。
+
+### 升级说明
+
+- 附件上传及共享设置需要更新电脑 Host；安卓拍照与文件选择器改进需安装新版 APK。单个附件最大 32 MiB。
+
+---
+
+### New Features
+
+- Add shared CLI visibility switches for desktop and mobile. Disabled entries are hidden while existing sessions remain accessible.
+- The mobile composer plus button opens camera, gallery, and file selection. Attachments are uploaded to the computer workspace's `.superhigh/pasted-images`, with retry, removal, and attachment-only sending.
+
+### Improvements
+
+- Use the full Super High theme catalog on mobile. Connecting applies the computer theme, and mobile theme changes synchronize back to the computer.
+- Upload attachments sequentially, retain drafts and attachments on send failure, and isolate upload results and preference responses across workspace or computer changes.
+
+### Upgrade Notes
+
+- Update the desktop Host for uploads and shared preferences, and install the new Android APK for camera and file picker improvements. Each attachment is limited to 32 MiB.
+
+## [0.1.8] - 2026-09-09
+
+### 新增功能
+
+- 手机端默认进入工作区终端，通过资源管理器侧栏访问电脑真实文件，账户省略号进入设置。
+- 手机输入框支持上移展开、通过加号唤起 CLI 斜杠命令及安卓系统语音识别，识别结果可编辑后发送。
+- 手机设置提供账户连接、数据管理、语言、外观、字号、服务协议与帮助反馈；检查更新统一包含程序与界面。
+
+### 体验优化
+
+- CLI 启动按钮保持终端上方单行横向滚动，手机优先接续电脑当前工作区。
+
+### 问题修复
+
+- 修复 Windows 安装更新主动断开连接时手机误报失败，改为等待电脑重新开启手机连接后自动加载新版界面。
+- 修复安卓退出后自动重新登录，以及编辑或切换电脑连接时影响已有终端的问题。
+
+### 升级说明
+
+- 安卓系统语音输入需要安装新版 APK，并由手机提供系统语音识别服务；电脑需更新以支持工作区同步与统一更新接口。
+
+---
+
+### New Features
+
+- Open the workspace terminal by default on mobile, browse real computer files in the explorer sidebar, and open Settings through the account ellipsis.
+- Expand and lift the mobile composer, invoke CLI slash commands with the plus button, and fill editable text through Android system speech recognition.
+- Add connection, local data, language, appearance, font size, terms, and help settings; combine application and interface updates in one entry.
+
+### Improvements
+
+- Keep CLI launch buttons in a single horizontally scrolling row above the terminal and prefer the computer's active workspace on mobile.
+
+### Bug Fixes
+
+- Handle the expected connection loss during Windows installation and reload the updated interface after mobile access is re-enabled on the desktop.
+- Prevent automatic reconnection after Android logout and preserve the active terminal while editing or validating another computer connection.
+
+### Upgrade Notes
+
+- Android system voice input requires the new APK and an available system speech recognition service; update the desktop host for workspace synchronization and unified update APIs.
+
+## [0.1.7] - 2026-09-09
+
+### 新增功能
+
+- 手机端默认进入工作区终端，通过资源管理器侧栏访问电脑真实文件，账户省略号进入设置。
+- 手机输入框支持上移展开、通过加号唤起 CLI 斜杠命令及安卓系统语音识别，识别结果可编辑后发送。
+- 手机设置提供账户连接、数据管理、语言、外观、字号、服务协议与帮助反馈；检查更新统一包含程序与界面。
+
+### 体验优化
+
+- CLI 启动按钮保持终端上方单行横向滚动，手机优先接续电脑当前工作区。
+
+### 升级说明
+
+- 安卓系统语音输入需要安装新版 APK，并由手机提供系统语音识别服务；电脑需更新以支持工作区同步与统一更新接口。
+
+---
+
+### New Features
+
+- Open the workspace terminal by default on mobile, browse real computer files in the explorer sidebar, and open Settings through the account ellipsis.
+- Expand and lift the mobile composer, invoke CLI slash commands with the plus button, and fill editable text through Android system speech recognition.
+- Add connection, local data, language, appearance, font size, terms, and help settings; combine application and interface updates in one entry.
+
+### Improvements
+
+- Keep CLI launch buttons in a single horizontally scrolling row above the terminal and prefer the computer's active workspace on mobile.
+
+### Upgrade Notes
+
+- Android system voice input requires the new APK and an available system speech recognition service; update the desktop host for workspace synchronization and unified update APIs.
+
+## [0.1.6] - 2026-09-09
+
+### 新增功能
+
+- 桌面版增加日常使用新手教程，覆盖项目、对话、文件、终端、渠道排错和手机端接续；完成或关闭后不再自动播放，支持在设置中重放。
+- 教程支持左右方向键切换步骤、ESC 直接关闭。
+
+### 不兼容变更
+
+- 移除内置 SSH 连接功能及相关设置入口。
+
+---
+
+### New Features
+
+- Add a desktop tutorial for projects, conversations, files, terminals, channel troubleshooting, and mobile access. It stops appearing automatically after completion or dismissal and can be replayed from Settings.
+- Navigate tutorial steps with the left and right arrow keys, or close it with ESC.
+
+### Breaking Changes
+
+- Remove the built-in SSH connection feature and its Settings entry.
+
+## [0.1.5] - 2026-09-09
+
+### 新增功能
+
+- 电脑 Host 托管手机网页，安卓 App 连接后加载电脑上的界面；手机浏览器也可直接访问，电脑设置支持预览手机界面。
+- 手机页面文件可独立更新，刷新即可加载新版 UI，无需重新构建安装 APK。
+
+### 问题修复
+
+- 修复手机连接推荐地址误选虚拟网卡的问题，并提供明确的中文连接超时提示。
+- 安卓安装图标统一为电脑端的蓝紫菱形图标。
+
+### 升级说明
+
+- 使用网页加载方式需更新一次电脑 Host 和安卓 App；后续安卓原生能力或 App 外壳变更仍需安装新版 APK。
+
+---
+
+### New Features
+
+- The desktop Host serves the mobile web UI, which the Android app loads after connecting. Mobile browsers can open it directly, and desktop settings provide a preview.
+- Mobile page files can be updated independently; refresh to load the new UI without rebuilding or reinstalling the APK.
+
+### Bug Fixes
+
+- Fixed virtual adapters being selected as the recommended mobile connection address and added a clear Chinese connection timeout message.
+- Matched the Android launcher icon to the desktop app's blue-purple diamond icon.
+
+### Upgrade Notes
+
+- Update the desktop Host and Android app once to enable hosted pages. Changes to native Android capabilities or the app shell still require a new APK.
+
+## [0.1.4] - 2026-09-09
+
+### 新增功能
+
+- 安卓手机端新增终端和 AI 对话，可连接电脑会话、发送输入、查看持续输出，并浏览和继续 AI 历史对话；提供 APK 测试安装包。
+
+---
+
+### New Features
+
+- Added Android terminal and AI conversations: connect to desktop sessions, send input, follow live output, and browse or resume AI conversation history; an APK is available for testing.
+
+## [0.1.3] - 2026-09-09
+
+### 新增功能
+
+- 新增 CLI 终端查询，可列出应用内会话并读取近期输出，支持项目筛选与 JSON。
+- 新增 CLI 项目脚本工具入口，可查看工具与参数并执行已登记工具。
+
+### 体验优化
+
+- 项目编辑器未登记页面时显示明确的空状态，不再误报编辑器不可用。
+
+### 问题修复
+
+- 修复 Windows 下部分 Node.js 项目脚本因路径格式无法启动的问题。
+
+### 不兼容变更
+
+- 移除远程端功能及配套 CLI 命令、设置中的工作区历史页面和未实现的 Git 导航入口；欢迎页仍保留最近项目。
+
+---
+
+### New Features
+
+- Added CLI commands to list in-app terminal sessions and read recent output, with project filters and JSON output.
+- Added CLI commands to inspect project script tools and their parameters, and run registered tools.
+
+### Improvements
+
+- Project editors with no registered pages now show a clear empty state instead of an unavailable error.
+
+### Bug Fixes
+
+- Fixed a Windows path-format issue that prevented some Node.js project scripts from starting.
+
+### Breaking Changes
+
+- Removed remote-end functionality and its CLI commands, the workspace history settings page, and the unimplemented Git navigation entry; recent projects remain on the welcome page.
+
+## [0.1.2] - 2026-09-09
+
+### 新增功能
+
+- 应用内更新：启动后及每隔 4 小时检查正式版，支持后台下载、手动检查和安装后重启。
+- 设置中的“应用更新”页面，显示当前版本、下载进度、更新说明和失败重试入口。
+- Windows 更新包签名校验，以及 GitHub Actions 的签名构建和更新清单发布流程。
+- PDF、Office 文档和媒体预览能力。
+
+### 体验优化
+
+- 安装更新前保护未保存文件和内部终端会话；其他 Super High 窗口仍打开时延后安装。
+- 完善 CLI 历史记录、会话展示和终端交互。
+- 发布时核对应用版本、标签、安装包和更新清单的一致性。
+
+### 升级说明
+
+- 0.1.0 尚不具备应用内更新能力，需要手动安装一次本版；后续正式版可在应用内更新。
+- 0.1.1 未单独发布到 GitHub，其间的开发变化随本版发布。
+
+---
+
+### New Features
+
+- In-app updates: check for stable releases after startup and every four hours, with background downloads, manual checks, and installation followed by a restart.
+- An Updates page in Settings showing the current version, download progress, release notes, and retry controls.
+- Signature verification for Windows update packages, plus signed builds and update manifest publishing through GitHub Actions.
+- PDF, Office document, and media previews.
+
+### Improvements
+
+- Protect unsaved files and internal terminal sessions before installing an update; defer installation while other Super High windows remain open.
+- Improve CLI history, session displays, and terminal interactions.
+- Validate consistency between application versions, tags, installers, and update manifests before publishing.
+
+### Upgrade Notes
+
+- Version 0.1.0 does not support in-app updates. Install this version manually once; subsequent stable releases can be installed from within the app.
+- Version 0.1.1 was not released separately on GitHub. Its development changes are included in this release.
+
+## [0.1.0] - 2026-08-12
+
+- 首次发布 Windows 安装包。
+
+[0.1.3]: https://github.com/XMhead/Super-High/releases/tag/v0.1.3
+[0.1.2]: https://github.com/XMhead/Super-High/releases/tag/v0.1.2
+[0.1.0]: https://github.com/XMhead/Super-High/releases/tag/v0.1.0
