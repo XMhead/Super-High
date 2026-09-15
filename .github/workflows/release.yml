@@ -1,0 +1,127 @@
+name: release (cloud fallback)
+run-name: Cloud fallback release ${{ inputs.tag }}
+
+# 默认使用 scripts/publish-local-release.mjs 本机构建，GitHub 仅托管产物。
+# 仅用户明确要求云端构建时调度此备用工作流；保留 main 作用域缓存。
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '待发布标签，例如 v0.1.6，必须指向当前公开 main'
+        required: true
+        type: string
+      title:
+        description: '可选 Release 标题；默认 Super High v<版本> Alpha，仅用户明确要求时覆盖'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ inputs.tag }}
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Validate release dispatch
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -ne 'refs/heads/main') { throw 'Dispatch this workflow on main so release caches can be reused.' }
+          if ($env:RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') { throw 'A stable version tag such as v0.1.6 is required.' }
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Verify public release source
+        shell: pwsh
+        run: |
+          git fetch origin main
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot fetch public main.' }
+          $releaseCommit = git rev-parse HEAD
+          $tagCommit = git rev-parse "refs/tags/$($env:RELEASE_TAG)^{commit}"
+          if ($LASTEXITCODE -ne 0 -or $tagCommit -ne $releaseCommit) { throw 'Checkout must match the requested release tag.' }
+          $publicCommit = git rev-parse origin/main
+          if ($releaseCommit -ne $publicCommit) { throw 'Release tag must point to the current public main commit.' }
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Validate update release
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        shell: pwsh
+        run: |
+          if (-not $env:TAURI_SIGNING_PRIVATE_KEY) { throw 'Configure TAURI_SIGNING_PRIVATE_KEY before releasing.' }
+          node scripts/check-update-release.mjs $env:RELEASE_TAG
+          if ($LASTEXITCODE -ne 0) { throw 'Invalid update release configuration.' }
+
+      - name: Require matching Android APK before building
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          node scripts/sync-release-apk.mjs $env:RELEASE_TAG $env:RUNNER_TEMP --check-source
+          if ($LASTEXITCODE -ne 0) { throw 'Publish and verify the matching public Android APK before starting the release.' }
+
+      - name: Read release notes
+        id: notes
+        shell: pwsh
+        run: |
+          $version = $env:RELEASE_TAG.TrimStart('v')
+          $changelog = Get-Content -LiteralPath CHANGELOG.md -Raw -Encoding UTF8
+          $section = [regex]::Match($changelog, '(?ms)^## \[' + [regex]::Escape($version) + '\][^\r\n]*\r?\n(.*?)(?=^## |^\[\d|\z)')
+          if (-not $section.Success) { throw 'Release version is missing from CHANGELOG.md.' }
+          $delimiter = [guid]::NewGuid().ToString()
+          "body<<$delimiter" >> $env:GITHUB_OUTPUT
+          $section.Groups[1].Value.Trim() >> $env:GITHUB_OUTPUT
+          "$delimiter" >> $env:GITHUB_OUTPUT
+
+      - name: Build and publish release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ inputs.tag }}
+          releaseName: ${{ inputs.title || format('Super High {0} Alpha', inputs.tag) }}
+          releaseBody: ${{ steps.notes.outputs.body }}
+          releaseDraft: true
+          prerelease: false
+          args: --bundles nsis
+          includeUpdaterJson: true
+          updaterJsonPreferNsis: true
+
+      - name: Verify assets and publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
+        run: |
+          $artifactDirectory = Join-Path $env:RUNNER_TEMP 'superhigh-update-release'
+          gh release download $env:RELEASE_TAG --dir $artifactDirectory --pattern latest.json --pattern '*-setup.exe' --pattern '*-setup.exe.sig'
+          if ($LASTEXITCODE -ne 0) { throw 'Update release assets are incomplete.' }
+          node scripts/check-update-release.mjs $env:RELEASE_TAG $artifactDirectory
+          if ($LASTEXITCODE -ne 0) { throw 'Update release assets failed validation.' }
+          node scripts/sync-release-apk.mjs $env:RELEASE_TAG $artifactDirectory --allow-draft --require-apk
+          if ($LASTEXITCODE -ne 0) { throw 'Android APK synchronization failed.' }
+          gh release edit $env:RELEASE_TAG --draft=false --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot publish the validated release.' }
