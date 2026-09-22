@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>项目编辑器</title>
+  <style>
+    body { margin: 0; color: var(--color-text-primary); background: var(--color-bg-primary); font: inherit; }
+    main { box-sizing: border-box; min-width: 0; max-width: 100%; padding: 12px; }
+  </style>
+</head>
+<body>
+  <!-- 在 main 内实现项目界面，再将本文件登记到同目录 editor.json 的 pages 中。
+       页面项包含 id、title、entry；entry 为本文件名。
+       文件读写、脚本工具和通知使用 window.superhighEditor；事件使用 addEventListener。
+       主题和字体由 SuperHigh 注入，本文件仅在 SuperHigh 内使用。 -->
+  <main id="editor-content"></main>
+</body>
+</html>
