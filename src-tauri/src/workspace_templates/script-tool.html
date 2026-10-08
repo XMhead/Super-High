@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>脚本工具</title>
+  <style>
+    body { margin: 0; color: var(--color-text-primary); background: var(--color-bg-primary); font: inherit; }
+    main { box-sizing: border-box; min-width: 0; max-width: 100%; padding: 12px; }
+  </style>
+</head>
+<body>
+  <!-- 在 main 内添加参数表单和结果区域，并在 ../script-tools.json 中登记真实脚本。
+       工具的 ui 指向 .superhigh/script-tools/template.html；脚本放在 .superhigh 外。
+       使用 addEventListener 绑定事件；window.superhighScriptTool.run(values) 执行已登记脚本。
+       结果通过 window.superhighScriptTool.renderOutput(resultElement, response) 展示。
+       主题和字体由 SuperHigh 注入，本文件仅在 SuperHigh 内使用。 -->
+  <main id="tool-content"></main>
+</body>
+</html>
