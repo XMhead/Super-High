@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SuperHigh 主题画廊 · 实时预览与勾选删除</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0b0d12; color: #e6edf3;
+         font: 13px/1.55 var(--font-ui); font-weight: var(--font-ui-weight); }
+  header { position: sticky; top: 0; z-index: 20; display: flex; gap: 10px; align-items: center;
+           flex-wrap: wrap; padding: 10px 16px; background: #11141bee; backdrop-filter: blur(8px);
+           border-bottom: 1px solid #232a36; }
+  h1 { font-size: 15px; margin: 0 6px 0 0; font-weight: 600; }
+  .muted { color: #8b949e; }
+  .grow { flex: 1; }
+  input[type=search] { background: #1a1f29; color: #e6edf3; border: 1px solid #2c3442;
+           border-radius: 6px; padding: 5px 9px; font: inherit; outline: none; min-width: 190px; }
+  input[type=search]:focus { border-color: #2f81f7; }
+  button { background: #1f2632; color: #e6edf3; border: 1px solid #2c3442; border-radius: 6px;
+           padding: 5px 10px; font: inherit; cursor: pointer; }
+  button:hover { background: #2a3342; }
+  button.primary { background: #1f6feb; border-color: #2f81f7; }
+  button.primary:hover { background: #2f81f7; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 16px;
+            padding: 16px; align-items: start; }
+  @media (max-width: 1150px) { .layout { grid-template-columns: minmax(0, 1fr); } aside { position: static !important; } }
+  .group-title { display: flex; align-items: center; gap: 8px; margin: 4px 2px 10px;
+            font-size: 12px; font-weight: 600; letter-spacing: .6px; color: #8b949e; }
+  .group-title::after { content: ""; flex: 1; height: 1px; background: #232a36; }
+  .wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(238px, 1fr)); gap: 10px; }
+  .tcard { border: 1px solid #232a36; border-radius: 9px; overflow: hidden; cursor: pointer;
+           background: #11141b; transition: transform .08s, box-shadow .12s, border-color .12s; }
+  .tcard:hover { transform: translateY(-2px); box-shadow: 0 6px 18px #0008; }
+  .tcard.active { border-color: #2f81f7; box-shadow: 0 0 0 1px #2f81f7; }
+  .tcard.marked { border-color: #f85149; }
+  .tcard.marked .meta { background: #2a1418; }
+  .mini { padding: 9px 10px 10px; display: flex; flex-direction: column; gap: 7px; background: var(--bg1); }
+  .mini-bar { height: 16px; border-radius: 4px; background: var(--bg2); border: 1px solid var(--brd);
+              display: flex; align-items: center; gap: 4px; padding: 0 6px; }
+  .mini-bar i { width: 5px; height: 5px; border-radius: 50%; background: var(--t3); }
+  .mini-bar i:first-child { background: var(--red); }
+  .mini-bar i:nth-child(2) { background: var(--yellow); }
+  .mini-bar i:nth-child(3) { background: var(--green); }
+  .mini-bar b { margin-left: auto; width: 30%; height: 6px; border-radius: 3px; background: var(--hover); }
+  .mini-line { height: 7px; border-radius: 3px; background: var(--t1); opacity: .92; }
+  .mini-line.dim { background: var(--t2); opacity: .7; }
+  .mini-line.w80 { width: 80%; }
+  .mini-line.w55 { width: 55%; }
+  .mini-row { display: flex; align-items: center; gap: 6px; }
+  .mini-btn { width: 46px; height: 14px; border-radius: 4px; background: var(--blue); }
+  .mini-chip { width: 30px; height: 14px; border-radius: 4px; background: var(--bg3); border: 1px solid var(--brd); }
+  .mini-dot { width: 11px; height: 11px; border-radius: 3px; }
+  .meta { display: flex; align-items: center; gap: 7px; padding: 7px 9px; background: #161a22;
+          border-top: 1px solid #232a36; }
+  .meta .idx { min-width: 22px; text-align: right; font-variant-numeric: tabular-nums;
+          color: #8b949e; font-size: 11px; }
+  .meta .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta .key { margin-left: auto; color: #6e7681; font-size: 10.5px;
+          font-family: var(--font-mono); font-weight: var(--font-mono-weight);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 96px; }
+  .meta input { accent-color: #f85149; width: 14px; height: 14px; cursor: pointer; }
+  aside { position: sticky; top: 62px; display: flex; flex-direction: column; gap: 12px; }
+  .panel { border: 1px solid #232a36; border-radius: 10px; background: #11141b; overflow: hidden; }
+  .panel-head { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid #232a36; }
+  .panel-head b { font-size: 13px; }
+  .panel-body { padding: 12px; }
+  .win { border-radius: 10px; overflow: hidden; border: 1px solid var(--brd); background: var(--bg1); }
+  .win-bar { display: flex; align-items: center; gap: 6px; padding: 7px 10px; background: var(--bg2);
+             border-bottom: 1px solid var(--brd); }
+  .win-bar .dots { display: flex; gap: 5px; }
+  .win-bar .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--t3); }
+  .win-bar .title { font-size: 11px; color: var(--t2); margin-left: 6px; }
+  .win-bar .right { margin-left: auto; display: flex; gap: 5px; }
+  .win-bar .right s { width: 34px; height: 11px; border-radius: 3px; background: var(--hover); text-decoration: none; }
+  .win-body { display: flex; min-height: 208px; }
+  .side { width: 108px; background: var(--bg2); border-right: 1px solid var(--brd); padding: 8px 7px;
+          display: flex; flex-direction: column; gap: 4px; }
+  .side span { font-size: 11px; color: var(--t2); padding: 4px 7px; border-radius: 5px; }
+  .side span.on { background: var(--hover); color: var(--t1); font-weight: 600; }
+  .main { flex: 1; padding: 11px 13px; display: flex; flex-direction: column; gap: 9px; background: var(--bg1); }
+  .main h2 { margin: 0; font-size: 14px; color: var(--t1); }
+  .main p { margin: 0; font-size: 11px; color: var(--t2); }
+  .card { background: var(--bg2); border: 1px solid var(--brd); border-radius: 7px; padding: 8px 10px;
+          display: flex; flex-direction: column; gap: 7px; }
+  .card .row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--t2); }
+  .card .row .val { margin-left: auto; background: var(--input); border: 1px solid var(--brd);
+          border-radius: 5px; padding: 3px 8px; color: var(--t1); font-size: 11px; }
+  .toggle { margin-left: auto; width: 26px; height: 14px; border-radius: 8px; background: var(--blue); position: relative; }
+  .toggle::after { content: ""; position: absolute; right: 2px; top: 2px; width: 10px; height: 10px;
+          border-radius: 50%; background: #fff; }
+  .sw-row { display: flex; gap: 5px; flex-wrap: wrap; }
+  .sw { width: 20px; height: 20px; border-radius: 5px; border: 1px solid var(--brd); }
+  .code { background: var(--bg3); border: 1px solid var(--brd); border-radius: 7px; padding: 8px 10px;
+          font: 11px/1.6 var(--font-mono); font-weight: var(--font-mono-weight); color: var(--t1); }
+  .code .k { color: var(--purple); }
+  .code .s { color: var(--green); }
+  .code .c { color: var(--t3); }
+  .code .f { color: var(--blue); }
+  .term { background: var(--term-bg); border: 1px solid var(--brd); border-radius: 7px; padding: 8px 10px;
+          font: 11px/1.65 var(--font-mono); font-weight: var(--font-mono-weight); }
+  .term div { white-space: pre; }
+  .tgrid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-top: 9px; }
+  .tgrid i { height: 16px; border-radius: 3px; }
+  .tgrid i::after { content: ""; }
+  textarea { width: 100%; height: 92px; resize: vertical; background: #0d1117; color: #c9d1d9;
+          border: 1px solid #2c3442; border-radius: 7px; padding: 8px;
+          font: 11px/1.5 var(--font-mono); font-weight: var(--font-mono-weight); }
+  .hint { font-size: 11px; color: #6e7681; }
+  .tag { font-size: 10px; padding: 1px 6px; border-radius: 20px; border: 1px solid #2c3442; color: #8b949e; }
+  .tag.light { color: #d29922; border-color: #4a3b12; }
+  .tag.glass { color: #58a6ff; border-color: #1f3a56; }
+  .badge { background: #1f6feb22; border: 1px solid #1f6feb66; color: #79c0ff; border-radius: 20px;
+           padding: 1px 8px; font-size: 11px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>主题画廊</h1>
+  <span class="muted" id="stat">共 0 个主题</span>
+  <input type="search" id="q" placeholder="搜索名称 / key（如 matrix、glass）" />
+  <button id="f-all" class="primary">全部</button>
+  <button id="f-dark">深色</button>
+  <button id="f-light">浅色</button>
+  <button id="f-marked">已勾选</button>
+  <span class="grow"></span>
+  <button id="quick-base">只留基础 9 个</button>
+  <button id="quick-opencode">勾选全部 opencode-*</button>
+  <button id="clear">清空勾选</button>
+  <button id="copy" class="primary">复制删除清单</button>
+</header>
+
+<div class="layout">
+  <section>
+    <div id="wall"></div>
+  </section>
+  <aside>
+    <div class="panel">
+      <div class="panel-head">
+        <b id="pv-name">—</b>
+        <span class="tag" id="pv-type"></span>
+        <span class="grow"></span>
+        <span class="muted" id="pv-idx"></span>
+      </div>
+      <div class="panel-body">
+        <div class="win" id="pv">
+          <div class="win-bar">
+            <span class="dots"><i></i><i></i><i></i></span>
+            <span class="title">Super High</span>
+            <span class="right"><s></s><s></s></span>
+          </div>
+          <div class="win-body">
+            <div class="side">
+              <span class="on">外观</span><span>个人</span><span>常规</span><span>快捷键</span>
+              <span>配置</span><span>数据</span><span>应用</span>
+            </div>
+            <div class="main">
+              <h2>外观</h2>
+              <p>主题 · 字体 · 编辑器读取</p>
+              <div class="card">
+                <div class="row">界面主题<span class="val" id="pv-sel">—</span></div>
+                <div class="row">字体<span class="val">Anthropic Sans</span></div>
+                <div class="row">代码浏览颜色渲染<span class="toggle"></span></div>
+              </div>
+              <div class="card">
+                <div class="row">色板</div>
+                <div class="sw-row" id="pv-sw"></div>
+              </div>
+              <div class="code">
+                <div><span class="k">const</span> theme = <span class="s">'<span id="pv-key"></span>'</span></div>
+                <div><span class="c">// 预览：编辑器正文与注解</span></div>
+                <div><span class="f">applyTheme</span>(<span class="s">'dark'</span>)</div>
+              </div>
+              <div class="term" id="pv-term"></div>
+            </div>
+          </div>
+        </div>
+        <div class="tgrid" id="pv-tgrid"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <b>模拟删除</b>
+        <span class="badge" id="cnt">已勾选 0 个</span>
+        <span class="grow"></span>
+        <button id="copy2">复制</button>
+      </div>
+      <div class="panel-body">
+        <textarea id="out" readonly placeholder="勾选卡片左上角的复选框，这里会实时列出要删除的主题 key"></textarea>
+        <div class="hint" id="hint">勾选后把清单发我，我按清单从 <code>src/lib/theme.ts</code> 删除并补测试。</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script id="theme-data" type="application/json">/*__THEMES_JSON__*/</script>
+<script>
+(function () {
+  const THEMES = JSON.parse(document.getElementById('theme-data').textContent)
+  const wall = document.getElementById('wall')
+  const q = document.getElementById('q')
+  const out = document.getElementById('out')
+  const cnt = document.getElementById('cnt')
+  const stat = document.getElementById('stat')
+  const marked = new Set()
+  let filter = 'all'
+  let current = THEMES[0]
+
+  const BASE9 = ['dark', 'light', 'solarized-dark', 'monokai', 'tokyo-night', 'catppuccin', 'ayu-light', 'solarized-light', 'gruvbox']
+
+  function hexToRgba(hex, a) {
+    const h = hex.replace('#', '')
+    const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16)
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'
+  }
+  function vars(theme) {
+    const c = theme.colors
+    const glass = theme.surfaceOpacity && theme.surfaceOpacity < 1
+    const bg1 = glass ? hexToRgba(c.bg.primary, theme.surfaceOpacity) : c.bg.primary
+    return {
+      '--bg1': bg1,
+      '--bg2': c.bg.secondary,
+      '--bg3': c.bg.tertiary,
+      '--hover': c.bg.hover,
+      '--t1': c.text.primary,
+      '--t2': c.text.secondary,
+      '--t3': c.text.muted,
+      '--blue': c.accent.blue,
+      '--green': c.accent.green,
+      '--yellow': c.accent.yellow,
+      '--red': c.accent.red,
+      '--purple': c.accent.purple,
+      '--brd': c.border,
+      '--input': c.inputBg,
+      '--term-bg': glass ? bg1 : theme.terminal.background
+    }
+  }
+  function styleOf(theme) {
+    return Object.entries(vars(theme)).map(([k, v]) => k + ':' + v).join(';')
+  }
+
+  function cardHtml(theme, index) {
+    const c = theme.colors
+    const dots = [c.accent.red, c.accent.yellow, c.accent.green, c.accent.blue, c.accent.purple]
+      .map(col => '<span class="mini-dot" style="background:' + col + '"></span>').join('')
+    return '<article class="tcard" data-key="' + theme.key + '" style="' + styleOf(theme) + '">' +
+      '<div class="mini">' +
+        '<div class="mini-bar"><i></i><i></i><i></i><b></b></div>' +
+        '<span class="mini-line w80"></span>' +
+        '<span class="mini-line dim w55"></span>' +
+        '<div class="mini-row"><span class="mini-btn"></span><span class="mini-chip"></span>' + dots + '</div>' +
+      '</div>' +
+      '<div class="meta">' +
+        '<input type="checkbox" data-check="' + theme.key + '" />' +
+        '<span class="idx">' + (index + 1) + '</span>' +
+        '<span class="name">' + theme.name + '</span>' +
+        (theme.key.indexOf('glass-') === 0 ? '<span class="tag glass">glass</span>' : '') +
+        '<span class="key">' + theme.key + '</span>' +
+      '</div>' +
+    '</article>'
+  }
+
+  function render() {
+    const term = (q.value || '').trim().toLowerCase()
+    const groups = [['dark', '深色主题'], ['light', '浅色主题']]
+    let html = ''
+    let shown = 0
+    groups.forEach(function (g) {
+      const items = THEMES.map(function (t, i) { return { t: t, i: i } })
+        .filter(function (x) { return x.t.type === g[0] })
+        .filter(function (x) {
+          if (filter === 'marked' && !marked.has(x.t.key)) return false
+          if (filter === 'dark' || filter === 'light') return x.t.type === filter
+          return true
+        })
+        .filter(function (x) {
+          if (!term) return true
+          return x.t.key.toLowerCase().indexOf(term) >= 0 || x.t.name.toLowerCase().indexOf(term) >= 0
+        })
+      if (!items.length) return
+      const first = items[0].i + 1
+      const last = items[items.length - 1].i + 1
+      html += '<div class="group-title">' + g[1] + ' · 编号 ' + first + '–' + last + ' · ' + items.length + ' 个</div>'
+      html += '<div class="wall">' + items.map(function (x) { return cardHtml(x.t, x.i) }).join('') + '</div>'
+      shown += items.length
+    })
+    wall.innerHTML = html || '<p class="muted">没有匹配的主题。</p>'
+    stat.textContent = '显示 ' + shown + ' / 共 ' + THEMES.length + ' 个主题'
+    applyActive()
+  }
+
+  function applyActive() {
+    wall.querySelectorAll('.tcard').forEach(function (el) {
+      el.classList.toggle('active', el.dataset.key === current.key)
+      el.classList.toggle('marked', marked.has(el.dataset.key))
+      const box = el.querySelector('input')
+      box.checked = marked.has(el.dataset.key)
+    })
+  }
+
+  function preview(theme, index) {
+    current = theme
+    const pv = document.getElementById('pv')
+    pv.setAttribute('style', styleOf(theme))
+    document.getElementById('pv-name').textContent = theme.name
+    document.getElementById('pv-idx').textContent = '#' + (index + 1)
+    const typeEl = document.getElementById('pv-type')
+    typeEl.textContent = theme.surfaceOpacity ? theme.type + ' · 玻璃 ' + Math.round(theme.surfaceOpacity * 100) + '%' : theme.type
+    typeEl.className = 'tag' + (theme.type === 'light' ? ' light' : theme.surfaceOpacity ? ' glass' : '')
+    document.getElementById('pv-sel').textContent = theme.name
+    document.getElementById('pv-key').textContent = theme.key
+    const c = theme.colors
+    const names = [['bg', c.bg.primary], ['bg2', c.bg.secondary], ['bg3', c.bg.tertiary],
+      ['hover', c.bg.hover], ['text', c.text.primary], ['text2', c.text.secondary],
+      ['muted', c.text.muted], ['border', c.border], ['input', c.inputBg],
+      ['blue', c.accent.blue], ['green', c.accent.green], ['yellow', c.accent.yellow],
+      ['red', c.accent.red], ['purple', c.accent.purple]]
+    document.getElementById('pv-sw').innerHTML = names.map(function (x) {
+      return '<span class="sw" title="' + x[0] + ' ' + x[1] + '" style="background:' + x[1] + '"></span>'
+    }).join('')
+    const t = theme.terminal
+    document.getElementById('pv-term').innerHTML =
+      '<div><span style="color:' + t.green + '">ok</span> <span style="color:' + t.foreground + '">build 通过 · </span>' +
+      '<span style="color:' + t.yellow + '">warn</span> <span style="color:' + t.blue + '">src/lib/theme.ts</span></div>' +
+      '<div><span style="color:' + t.brightBlack + '">$ </span><span style="color:' + t.foreground + '">npm run test</span> ' +
+      '<span style="color:' + t.magenta + '">vitest</span> <span style="color:' + t.green + '">✓ 42</span> ' +
+      '<span style="color:' + t.red + '">✗ 0</span></div>'
+    const order = ['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white',
+      'brightBlack', 'brightRed', 'brightGreen', 'brightYellow', 'brightBlue', 'brightMagenta', 'brightCyan', 'brightWhite']
+    document.getElementById('pv-tgrid').innerHTML = order.map(function (k) {
+      return '<i title="' + k + ' ' + t[k] + '" style="background:' + t[k] + '"></i>'
+    }).join('')
+    applyActive()
+  }
+
+  function syncOut() {
+    const list = THEMES.filter(function (t) { return marked.has(t.key) })
+    cnt.textContent = '已勾选 ' + list.length + ' 个'
+    out.value = list.length
+      ? list.map(function (t, i) { return (i + 1) + '. ' + t.name + '  (' + t.key + ')' }).join('\n') +
+        '\n\n// keys: [' + list.map(function (t) { return "'" + t.key + "'" }).join(', ') + ']'
+      : ''
+  }
+
+  wall.addEventListener('click', function (event) {
+    const box = event.target.closest('input[type=checkbox]')
+    if (box) {
+      event.stopPropagation()
+      if (box.checked) marked.add(box.dataset.check)
+      else marked.delete(box.dataset.check)
+      applyActive()
+      syncOut()
+      return
+    }
+    const card = event.target.closest('.tcard')
+    if (!card) return
+    const index = THEMES.findIndex(function (t) { return t.key === card.dataset.key })
+    if (index >= 0) preview(THEMES[index], index)
+    card.scrollIntoView({ block: 'nearest' })
+  })
+
+  wall.addEventListener('mouseover', function (event) {
+    const card = event.target.closest('.tcard')
+    if (!card) return
+    const index = THEMES.findIndex(function (t) { return t.key === card.dataset.key })
+    if (index >= 0) preview(THEMES[index], index)
+  })
+
+  q.addEventListener('input', render)
+  document.getElementById('f-all').onclick = function () { filter = 'all'; render() }
+  document.getElementById('f-dark').onclick = function () { filter = 'dark'; render() }
+  document.getElementById('f-light').onclick = function () { filter = 'light'; render() }
+  document.getElementById('f-marked').onclick = function () { filter = 'marked'; render() }
+  document.getElementById('clear').onclick = function () { marked.clear(); render(); syncOut() }
+  document.getElementById('quick-opencode').onclick = function () {
+    THEMES.forEach(function (t) { if (t.key.indexOf('opencode-') === 0) marked.add(t.key) })
+    render(); syncOut()
+  }
+  document.getElementById('quick-base').onclick = function () {
+    marked.clear()
+    THEMES.forEach(function (t) { if (BASE9.indexOf(t.key) < 0) marked.add(t.key) })
+    render(); syncOut()
+  }
+  function copyOut() {
+    out.select()
+    try { navigator.clipboard.writeText(out.value) } catch (e) { document.execCommand('copy') }
+    document.getElementById('hint').textContent = '已复制 ' + marked.size + ' 个待删除 key。'
+  }
+  document.getElementById('copy').onclick = copyOut
+  document.getElementById('copy2').onclick = copyOut
+
+  render()
+  preview(THEMES[0], 0)
+  syncOut()
+})()
+</script>
+</body>
+</html>
