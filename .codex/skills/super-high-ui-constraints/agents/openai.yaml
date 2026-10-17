@@ -1,0 +1,4 @@
+interface:
+  display_name: "Super High UI Constraints"
+  short_description: "Enforce rectangular, theme-driven UI rules for this project."
+  default_prompt: "Use this skill before changing Super High UI components, especially project Skills, navigation, buttons, and cards."
