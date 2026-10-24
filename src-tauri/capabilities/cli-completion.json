@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "cli-completion",
+  "description": "Close the butler's desktop completion notices.",
+  "windows": ["cli-completion-*"],
+  "permissions": ["core:window:allow-close", "core:event:allow-emit"]
+}
