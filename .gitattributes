@@ -1,0 +1,3 @@
+src-tauri/Cargo.toml text eol=lf
+src-tauri/gen/schemas/desktop-schema.json text eol=lf
+src-tauri/gen/schemas/windows-schema.json text eol=lf
