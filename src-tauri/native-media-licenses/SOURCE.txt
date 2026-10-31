@@ -1,0 +1,15 @@
+Native video playback: libmpv and its linked libraries.
+
+Unmodified Windows build by shinchiro, linked from https://mpv.io/installation/
+Build scripts and dependency recipes:
+https://github.com/shinchiro/mpv-winbuild-cmake/tree/20261021
+Binary:
+https://github.com/shinchiro/mpv-winbuild-cmake/releases/download/20261021/mpv-dev-x86_64-20261021-git-e471496c56.7z
+Archive SHA256:
+efc719eff3dc5954b4a5efc800632808bcec01cc9034940dd14e5eb7fe9ea633
+mpv source revision and copyright/license texts:
+https://github.com/mpv-player/mpv/tree/e471496c56
+
+See Copyright, LICENSE.GPL and LICENSE.LGPL in this directory. The binary is
+not part of the SuperHigh source tree; the build entry fetches and verifies
+the pinned archive, and bundles the engine and these notices as resources.
