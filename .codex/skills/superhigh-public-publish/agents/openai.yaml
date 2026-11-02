@@ -1,0 +1,4 @@
+interface:
+  display_name: "Super High 开源发布"
+  short_description: "将本地全功能仓库脱敏后发布到 GitHub 公开仓库"
+  default_prompt: "把当前 Super High 工作区脱敏并发布到 GitHub 公开仓库"

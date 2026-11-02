@@ -1,0 +1,8 @@
+root = Page([intro, versions, categories, status], [reply])
+intro = Text("# 搜索方案预览\n正文默认支持 **Markdown**，将鼠标移到版本或分类按钮上即可预览，点击后保留选择。")
+versions = Tabs(["第一版 UI 查看", "第二版 UI 查看"], [first, second])
+first = Card("单后缀筛选", [Text("输入 `.bbmodel`，只展示 Blockbench 模型。"), Code("┌─ 搜索 ────────────────┐\n│ 角色 .bbmodel         │\n└───────────────────────┘\n  角色.bbmodel\n  角色_新版.bbmodel", "ansi")])
+second = Card("多后缀筛选", [Text("输入 `.yaml .yml`，同时匹配两种配置后缀。\n\n- 后缀忽略大小写\n- 其他文件类型直接跳过\n- 剩余文字继续匹配文件名")])
+categories = Card("分类联动预览", [Choice("type", [{label: "配置文件", value: "config"}, {label: "媒体文件", value: "media"}], value: "config"), Bind("type", {config: Text("**配置文件**：`.yaml`、`.yml`、`.json`"), media: Text("**媒体文件**：`.png`、`.mp4`")})])
+status = Ansi("\\x1b[32m✓ Markdown 和 ANSI 渲染已开启\\x1b[0m\n悬停预览不改变正式选择。")
+reply = Form("review", [Input("note", "补充意见", multiline: true)], submit: "确认")

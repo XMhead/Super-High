@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>Skill 概览</title>
+  <style>
+    body { margin: 0; font-size: 13px; }
+    .page { display: grid; grid-template-rows: auto auto minmax(0, 1fr); height: 100vh; min-width: 0; }
+    .toolbar { gap: 8px; }
+    .search { flex: 1 1 160px; min-width: 120px; height: 28px; padding: 0 8px; border: 1px solid var(--color-border); border-radius: 4px; color: var(--color-text-primary); background: var(--color-bg-secondary); font: inherit; outline: none; }
+    .search:focus { border-color: var(--color-accent-blue); }
+    .button { flex: none; height: 28px; padding: 0 10px; border: 1px solid var(--color-border); border-radius: 4px; color: var(--color-text-secondary); background: var(--color-bg-secondary); font: inherit; cursor: pointer; box-shadow: none; }
+    .button:hover:not(:disabled) { color: var(--color-text-primary); border-color: var(--surface-accent-blue-border); background: var(--surface-accent-blue-soft); }
+    .button.active { color: var(--color-text-primary); border-color: var(--color-accent-blue); background: var(--surface-accent-blue-soft); }
+    .button:disabled { cursor: default; opacity: .55; }
+    .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 8px; border-bottom: 1px solid var(--color-border); }
+    .stat { display: grid; gap: 3px; min-width: 0; padding: 7px 9px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--surface-panel); }
+    .stat-label { overflow: hidden; color: var(--color-text-secondary); font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }
+    .stat-value { color: var(--color-text-primary); font-size: 15px; font-weight: var(--sh-weight-strong, 600); white-space: nowrap; }
+    .stat-sub { overflow: hidden; color: var(--color-text-muted); font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }
+    .list { overflow: auto; padding: 8px; }
+    .group-title { display: flex; align-items: center; gap: 8px; margin: 4px 0 6px; color: var(--color-text-secondary); font-size: 12px; }
+    .group-title:not(:first-child) { margin-top: 12px; }
+    .row { display: grid; gap: 4px; padding: 7px 9px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-bg-primary); cursor: pointer; }
+    .row + .row { margin-top: 5px; }
+    .row:hover { border-color: var(--surface-accent-blue-border); }
+    .row.open { border-color: var(--color-accent-blue); }
+    .row-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .name { overflow: hidden; color: var(--color-text-primary); font-weight: var(--sh-weight-strong, 600); white-space: nowrap; text-overflow: ellipsis; }
+    .tokens { flex: none; margin-left: auto; color: var(--color-text-secondary); font-size: 11px; white-space: nowrap; }
+    .desc { display: -webkit-box; overflow: hidden; color: var(--color-text-secondary); line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .row.open .desc { display: block; }
+    .detail { display: none; gap: 6px; }
+    .row.open .detail { display: grid; }
+    .path { overflow: hidden; color: var(--color-text-muted); font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }
+    .body { max-height: 420px; margin: 0; padding: 8px; overflow: auto; border: 1px solid var(--surface-divider-muted); border-radius: 4px; color: var(--color-text-primary); background: var(--surface-panel-soft); font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; cursor: text; }
+    .tag { display: inline-flex; flex: none; align-items: center; height: 18px; padding: 0 6px; border: 1px solid transparent; border-radius: 3px; font-size: 11px; font-weight: var(--sh-weight-strong, 600); line-height: 1; }
+    .tag.project { color: var(--skill-kind-project); background: var(--skill-kind-project-soft); border-color: var(--skill-kind-project-border); }
+    .tag.global { color: var(--skill-kind-global); background: var(--skill-kind-global-soft); border-color: var(--skill-kind-global-border); }
+    .empty, .error { padding: 12px 4px; color: var(--color-text-secondary); }
+    .error { color: var(--color-accent-red); }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+    ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+    ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-accent-blue); }
+    @media (max-width: 520px) { .summary { grid-template-columns: minmax(0, 1fr); } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="sh-toolbar toolbar">
+      <button class="button active" type="button" data-scope="all">全部</button>
+      <button class="button" type="button" data-scope="project">项目</button>
+      <button class="button" type="button" data-scope="global">全局</button>
+      <input id="search" class="search" type="text" placeholder="搜索名称或描述" autocomplete="off">
+      <button id="refresh" class="button" type="button">刷新</button>
+    </div>
+    <section id="summary" class="summary" aria-label="Token 汇总"></section>
+    <section id="list" class="list" aria-label="Skill 列表"><div class="empty">正在读取 Skill...</div></section>
+  </main>
+
+  <script>
+    (() => {
+      const SCOPE_LABELS = { project: '项目', global: '全局' }
+      const list = document.getElementById('list')
+      const summary = document.getElementById('summary')
+      const search = document.getElementById('search')
+      const refreshButton = document.getElementById('refresh')
+      const scopeButtons = [...document.querySelectorAll('[data-scope]')]
+      const opened = new Set()
+      let skills = []
+      let scope = 'all'
+
+      const escape = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char])
+      const format = (value) => value >= 10000 ? `${(value / 1000).toFixed(1)}k` : String(value)
+      const sum = (items, key) => items.reduce((total, item) => total + item[key], 0)
+
+      function stat(label, items) {
+        return `<div class="stat"><span class="stat-label">${label} · ${items.length} 个</span>`
+          + `<span class="stat-value">≈ ${format(sum(items, 'descriptionTokens'))} token</span>`
+          + `<span class="stat-sub">描述常驻；全部正文 ≈ ${format(sum(items, 'bodyTokens'))} token</span></div>`
+      }
+
+      function renderSummary() {
+        summary.innerHTML = stat('合计', skills)
+          + stat('项目', skills.filter((item) => item.scope === 'project'))
+          + stat('全局', skills.filter((item) => item.scope === 'global'))
+        summary.title = 'token 为本地估算：中日韩字符按 1、其他字符按 1/4 计。描述行在每次会话预加载，正文仅在调用该 Skill 时加载。'
+      }
+
+      function renderList() {
+        const query = search.value.trim().toLowerCase()
+        const visible = skills.filter((item) => (scope === 'all' || item.scope === scope)
+          && (!query || `${item.name} ${item.description}`.toLowerCase().includes(query)))
+        if (!visible.length) {
+          list.innerHTML = `<div class="empty">${skills.length ? '没有匹配的 Skill' : '没有发现可用的 Skill'}</div>`
+          return
+        }
+        list.innerHTML = ['project', 'global'].map((group) => {
+          const items = visible.filter((item) => item.scope === group)
+          if (!items.length) return ''
+          const rows = items.map((item) => `<article class="row${opened.has(item.path) ? ' open' : ''}" data-path="${escape(item.path)}" tabindex="0">`
+            + `<div class="row-head"><span class="name">${escape(item.name)}</span><span class="tag ${item.scope}">${SCOPE_LABELS[item.scope]}</span>`
+            + `<span class="tokens">描述 ≈ ${format(item.descriptionTokens)} · 正文 ≈ ${format(item.bodyTokens)}</span></div>`
+            + `<div class="desc">${escape(item.description)}</div>`
+            + `<div class="detail"><div class="path" title="${escape(item.path)}">${escape(item.path)}</div>`
+            + `<pre class="body">${escape(item.body || '（正文为空）')}</pre></div></article>`).join('')
+          return `<div class="group-title"><span class="tag ${group}">${SCOPE_LABELS[group]}</span><span>${items.length} 个 · 描述 ≈ ${format(sum(items, 'descriptionTokens'))} token</span></div>${rows}`
+        }).join('')
+      }
+
+      async function load() {
+        refreshButton.disabled = true
+        try {
+          skills = await window.superhighEditor.skillOverview()
+          renderSummary()
+          renderList()
+        } catch (error) {
+          list.innerHTML = `<div class="error">Skill 读取失败：${escape(error instanceof Error ? error.message : error)}</div>`
+        } finally {
+          refreshButton.disabled = false
+        }
+      }
+
+      function toggle(row) {
+        const path = row.dataset.path
+        if (opened.has(path)) opened.delete(path)
+        else opened.add(path)
+        row.classList.toggle('open', opened.has(path))
+      }
+
+      list.addEventListener('click', (event) => {
+        // 选中正文文字时不折叠。
+        if (event.target.closest('.body') || String(window.getSelection())) return
+        const row = event.target.closest('.row')
+        if (row) toggle(row)
+      })
+      list.addEventListener('keydown', (event) => {
+        if ((event.key === 'Enter' || event.key === ' ') && event.target.classList.contains('row')) {
+          event.preventDefault()
+          toggle(event.target)
+        }
+      })
+      scopeButtons.forEach((button) => button.addEventListener('click', () => {
+        scope = button.dataset.scope
+        scopeButtons.forEach((item) => item.classList.toggle('active', item === button))
+        renderList()
+      }))
+      search.addEventListener('input', renderList)
+      refreshButton.addEventListener('click', load)
+      void load()
+    })()
+  </script>
+</body>
+</html>
