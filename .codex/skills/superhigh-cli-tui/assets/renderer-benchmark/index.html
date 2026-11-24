@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Codex CLI 终端渲染对照</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 16px; background: var(--color-bg-primary); color: var(--color-text-primary); font-family: var(--font-ui); font-weight: var(--font-ui-weight); }
+    header { display: flex; align-items: center; gap: 18px; padding-bottom: 12px; }
+    #status { font-family: var(--font-mono); font-weight: var(--font-mono-weight); }
+    #host { width: max-content; min-width: 500px; padding: 8px; background: var(--color-bg-secondary); }
+    #host .xterm { padding: 0; }
+    #summary { white-space: pre-wrap; font-family: var(--font-mono); font-weight: var(--font-mono-weight); font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header><strong>Codex CLI 终端渲染对照</strong><span id="status">正在初始化</span></header>
+  <div id="host"></div>
+  <pre id="summary"></pre>
+  <script type="module" src="/__bench/app.ts"></script>
+</body>
+</html>

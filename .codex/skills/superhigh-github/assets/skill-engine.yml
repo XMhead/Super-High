@@ -1,0 +1,30 @@
+schema: agent-skill-v1
+name: superhigh-github
+summary: superhigh-github 的领域操作与工作流
+methods:
+  integration_inspect_inspect:
+    summary: Read-only check of deployed build inputs, actual EXE hashes and selected source paths against remote main：inspect
+    runtime: node
+    entry: ../scripts/inspect-integration.mjs
+    keywords:
+    - 接续集成
+    - 本机与GitHub同步状态
+    - 并行任务集成交接
+    argv:
+    - param: paths
+      flag: --path
+      format: repeat
+    - param: entry
+      flag: --entry
+    params:
+      paths:
+        type: array
+        scope: project
+        min_items: 1
+        items:
+          type: string
+          min_length: 1
+      entry:
+        type: string
+        min_length: 1
+workflows: {}

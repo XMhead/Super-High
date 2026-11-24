@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>Skill 概览</title>
+  <style>
+    body { margin: 0; }
+    #overview { min-width: 0; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+    ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+    ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-accent-blue); }
+  </style>
+</head>
+<body>
+  <main id="overview"></main>
+  <script>
+    (() => {
+      const host = window.superhighEditor
+      const labels = { project: '项目', global: '全局' }
+      const quote = JSON.stringify
+      const format = (value) => value >= 10000 ? `${(value / 1000).toFixed(1)}k` : String(value)
+      const sum = (items, key) => items.reduce((total, item) => total + item[key], 0)
+      let skills = []
+      let values = { scope: 'all', query: '' }
+      let loading = false
+      let error = ''
+      let view
+      let columns = 1
+
+      function source() {
+        const query = String(values.query || '').trim().toLowerCase()
+        const visible = skills.filter((item) => (values.scope === 'all' || item.scope === values.scope)
+          && (!query || `${item.name} ${item.description}`.toLowerCase().includes(query)))
+        const statements = [
+          `scope = Choice(name: "scope", options: [{label: "全部", value: "all"}, {label: "项目", value: "project"}, {label: "全局", value: "global"}], value: "all")`,
+          `query = Input(name: "query", placeholder: "搜索名称或描述")`,
+          `refresh = Button(label: ${quote(loading ? '刷新中…' : '刷新')}, action: "refresh")`,
+          `controls = Row(children: [scope, query, refresh], align: "between", gap: "s")`,
+        ]
+        const stats = [['合计', skills], ['项目', skills.filter((item) => item.scope === 'project')], ['全局', skills.filter((item) => item.scope === 'global')]]
+        stats.forEach(([label, items], index) => statements.push(`stat_${index} = Stat(label: ${quote(`${label} · ${items.length} 个`)}, value: ${quote(`≈ ${format(sum(items, 'descriptionTokens'))} token`)}, delta: ${quote(`正文 ≈ ${format(sum(items, 'bodyTokens'))} token`)})`))
+        statements.push('summary = Grid(children: [stat_0, stat_1, stat_2], columns: 3)')
+        const children = ['controls', 'summary']
+        if (error) {
+          statements.push(`error = Callout(content: ${quote(error)}, tone: "error")`)
+          children.push('error')
+        }
+        for (const group of ['project', 'global']) {
+          const items = visible.filter((item) => item.scope === group)
+          if (!items.length) continue
+          statements.push(`group_${group} = Divider(label: ${quote(`${labels[group]} · ${items.length} 个 · 描述 ≈ ${format(sum(items, 'descriptionTokens'))} token`)})`)
+          children.push(`group_${group}`)
+          const cards = []
+          for (const item of items) {
+            const id = `skill_${skills.indexOf(item)}`
+            statements.push(`${id}_body = Section(title: "正文", collapsed: true, maxHeight: 420, children: [Text(content: ${quote(item.path)}, variant: "code"), Markdown(content: ${quote(item.body || '（正文为空）')})])`)
+            statements.push(`${id} = Card(title: ${quote(item.name)}, subtitle: ${quote(`描述 ≈ ${format(item.descriptionTokens)} · 正文 ≈ ${format(item.bodyTokens)}`)}, children: [Text(content: ${quote(item.description)}, variant: "muted"), ${id}_body])`)
+            cards.push(id)
+          }
+          statements.push(`cards_${group} = Grid(children: [${cards.join(', ')}], columns: ${columns})`)
+          children.push(`cards_${group}`)
+        }
+        if (!visible.length && !error) {
+          statements.push(`empty = Text(content: ${quote(loading ? '正在读取 Skill…' : skills.length ? '没有匹配的 Skill' : '没有发现可用的 Skill')}, variant: "muted")`)
+          children.push('empty')
+        }
+        statements.push(`root = Stack(children: [${children.join(', ')}], gap: "s")`)
+        return statements.join('\n')
+      }
+
+      function render() {
+        if (view) view.update(source(), { values })
+        else view = host.renderIui(document.getElementById('overview'), source(), {
+          values,
+          onChange(event) { values = { ...values, ...event.values }; render() },
+          onAction(action) { if (action.action === 'refresh') void load() },
+          onError(message) { void host.toast(message, 'error') },
+        })
+      }
+
+      async function load() {
+        if (loading) return
+        loading = true
+        error = ''
+        render()
+        try {
+          skills = await host.skillOverview()
+        } catch (cause) {
+          error = `Skill 读取失败：${cause instanceof Error ? cause.message : String(cause)}`
+        } finally {
+          loading = false
+          render()
+        }
+      }
+      const observer = new ResizeObserver(([entry]) => {
+        const next = Math.max(1, Math.floor(entry.contentRect.width / 360))
+        if (next === columns) return
+        columns = next
+        render()
+      })
+      observer.observe(document.getElementById('overview'))
+      window.addEventListener('pagehide', () => { observer.disconnect(); view?.destroy() }, { once: true })
+      void load()
+    })()
+  </script>
+</body>
+</html>

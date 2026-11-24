@@ -1,0 +1,14 @@
+root = Page([review], [])
+review = Form("repair_review", [scope, details, checks, note], submit: "填入会话草稿")
+scope = Question("scope", "这次修复覆盖哪些入口？", [
+  {label: "桌面和手机共用修复", value: "shared", recommended: true, description: "共用渲染和提交逻辑，两端一起消除选项布局和草稿格式差异。"},
+  {label: "先修桌面端", value: "desktop", description: "最快能在桌面复验。手机端仍要单独安排一次更新。"}
+], description: "选中方案后可查看受影响的入口。")
+details = Bind("scope", path: "choices.0", cases: {shared: shared, desktop: desktop})
+shared = Table(["入口", "复验内容"], [["桌面和独立编辑器", "选项、状态恢复、回填草稿"], ["手机文件预览", "窄屏勾选与回填原会话"]])
+desktop = Table(["入口", "复验内容"], [["桌面和独立编辑器", "原场景复现和草稿回填"], ["手机文件预览", "延后验证"]])
+checks = Question("checks", "优先复验哪些场景？", [
+  {label: "360 px 窄窗", value: "narrow", recommended: true, description: "长说明换行，单选与复选控件保持在可视区域。"},
+  {label: "重开恢复", value: "restore", description: "选择和补充文字可恢复，方便继续填写。"}
+], multiple: true, freeText: false)
+note = Question("note", "还需覆盖什么场景？", required: false, placeholder: "填入复现步骤或路径")

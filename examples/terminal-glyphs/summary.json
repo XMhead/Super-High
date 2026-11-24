@@ -1,0 +1,860 @@
+{
+  "schema": "superhigh.terminal-glyph-check.v1",
+  "date": "2026-11-14T15:57:38.025Z",
+  "renderer": "wraithterm 0.6.1",
+  "font": "Anthropic Mono",
+  "fontSize": 14,
+  "weights": {
+    "normal": 500,
+    "bold": 700
+  },
+  "method": ".codex/skills/superhigh-cli-tui/scripts/inspect-terminal-glyphs.mjs",
+  "patch": "scripts/patch-wraithterm.mjs",
+  "comparison": {
+    "reference": "Per-cell Canvas2D rasterization, snapped to physical pixel origins",
+    "tolerancePerChannel": 2,
+    "raw125DifferentPixels": 15624,
+    "patched125DifferentPixels": 0
+  },
+  "batches": [
+    {
+      "scale": 1,
+      "samples": [
+        {
+          "font": "anthropic-raw",
+          "family": "'Anthropic Mono', \"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 8.399993896484375,
+            "height": 18
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 2
+        },
+        {
+          "font": "anthropic",
+          "family": "'Anthropic Mono', \"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 8,
+            "height": 18
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 2,
+          "selection": "python",
+          "geometryChecks": {
+            "samples": [
+              {
+                "fontSize": 14,
+                "cols": 100,
+                "rows": 20,
+                "cell": {
+                  "width": 8,
+                  "height": 18
+                },
+                "screen": {
+                  "width": 800,
+                  "height": 360
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 8,
+                  "height": 18
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 666
+                }
+              },
+              {
+                "fontSize": 16,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 10,
+                  "height": 20
+                },
+                "screen": {
+                  "width": 1130,
+                  "height": 740
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 8,
+                  "height": 18
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 666
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 8,
+                  "height": 18
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 666
+                }
+              }
+            ],
+            "domFallback": true,
+            "webgpuRecovered": true
+          }
+        },
+        {
+          "font": "fallback-raw",
+          "family": "\"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 8.203125,
+            "height": 16
+          },
+          "differentPixels": 702,
+          "maxChannelDelta": 220
+        },
+        {
+          "font": "fallback",
+          "family": "\"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 8,
+            "height": 16
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 2,
+          "selection": "python",
+          "geometryChecks": {
+            "samples": [
+              {
+                "fontSize": 14,
+                "cols": 100,
+                "rows": 20,
+                "cell": {
+                  "width": 8,
+                  "height": 16
+                },
+                "screen": {
+                  "width": 800,
+                  "height": 320
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 8,
+                  "height": 16
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              },
+              {
+                "fontSize": 16,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 9,
+                  "height": 19
+                },
+                "screen": {
+                  "width": 1017,
+                  "height": 703
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 8,
+                  "height": 16
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 8,
+                  "height": 16
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              }
+            ],
+            "domFallback": true,
+            "webgpuRecovered": true
+          }
+        }
+      ],
+      "remainingProcesses": 0
+    },
+    {
+      "scale": 1.25,
+      "samples": [
+        {
+          "font": "anthropic-raw",
+          "family": "'Anthropic Mono', \"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 10.499992370605469,
+            "height": 23
+          },
+          "differentPixels": 15624,
+          "maxChannelDelta": 214
+        },
+        {
+          "font": "anthropic",
+          "family": "'Anthropic Mono', \"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 11,
+            "height": 23
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 1,
+          "selection": "python",
+          "geometryChecks": {
+            "samples": [
+              {
+                "fontSize": 14,
+                "cols": 100,
+                "rows": 20,
+                "cell": {
+                  "width": 11,
+                  "height": 23
+                },
+                "screen": {
+                  "width": 880,
+                  "height": 368
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 11,
+                  "height": 23
+                },
+                "screen": {
+                  "width": 994.4000244140625,
+                  "height": 680.7999877929688
+                }
+              },
+              {
+                "fontSize": 16,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 12,
+                  "height": 25
+                },
+                "screen": {
+                  "width": 1084.800048828125,
+                  "height": 740
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 11,
+                  "height": 23
+                },
+                "screen": {
+                  "width": 994.4000244140625,
+                  "height": 680.7999877929688
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 11,
+                  "height": 23
+                },
+                "screen": {
+                  "width": 994.4000244140625,
+                  "height": 680.7999877929688
+                }
+              }
+            ],
+            "domFallback": true,
+            "webgpuRecovered": true
+          }
+        },
+        {
+          "font": "fallback-raw",
+          "family": "\"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 10.25390625,
+            "height": 20
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 2
+        },
+        {
+          "font": "fallback",
+          "family": "\"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 10,
+            "height": 20
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 2,
+          "selection": "python",
+          "geometryChecks": {
+            "samples": [
+              {
+                "fontSize": 14,
+                "cols": 100,
+                "rows": 20,
+                "cell": {
+                  "width": 10,
+                  "height": 20
+                },
+                "screen": {
+                  "width": 800,
+                  "height": 320
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 10,
+                  "height": 20
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              },
+              {
+                "fontSize": 16,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 12,
+                  "height": 24
+                },
+                "screen": {
+                  "width": 1084.800048828125,
+                  "height": 710.4000244140625
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 10,
+                  "height": 20
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 10,
+                  "height": 20
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              }
+            ],
+            "domFallback": true,
+            "webgpuRecovered": true
+          }
+        }
+      ],
+      "remainingProcesses": 0
+    },
+    {
+      "scale": 1.5,
+      "samples": [
+        {
+          "font": "anthropic-raw",
+          "family": "'Anthropic Mono', \"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 12.599990844726562,
+            "height": 27
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 1
+        },
+        {
+          "font": "anthropic",
+          "family": "'Anthropic Mono', \"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 13,
+            "height": 27
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 1,
+          "selection": "python",
+          "geometryChecks": {
+            "samples": [
+              {
+                "fontSize": 14,
+                "cols": 100,
+                "rows": 20,
+                "cell": {
+                  "width": 13,
+                  "height": 27
+                },
+                "screen": {
+                  "width": 866.6666870117188,
+                  "height": 360
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 13,
+                  "height": 27
+                },
+                "screen": {
+                  "width": 979.3333740234375,
+                  "height": 666
+                }
+              },
+              {
+                "fontSize": 16,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 14,
+                  "height": 30
+                },
+                "screen": {
+                  "width": 1054.666748046875,
+                  "height": 740
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 13,
+                  "height": 27
+                },
+                "screen": {
+                  "width": 979.3333740234375,
+                  "height": 666
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 13,
+                  "height": 27
+                },
+                "screen": {
+                  "width": 979.3333740234375,
+                  "height": 666
+                }
+              }
+            ],
+            "domFallback": true,
+            "webgpuRecovered": true
+          }
+        },
+        {
+          "font": "fallback-raw",
+          "family": "\"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 12.3046875,
+            "height": 24
+          },
+          "differentPixels": 75,
+          "maxChannelDelta": 148
+        },
+        {
+          "font": "fallback",
+          "family": "\"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 12,
+            "height": 24
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 1,
+          "selection": "python",
+          "geometryChecks": {
+            "samples": [
+              {
+                "fontSize": 14,
+                "cols": 100,
+                "rows": 20,
+                "cell": {
+                  "width": 12,
+                  "height": 24
+                },
+                "screen": {
+                  "width": 800,
+                  "height": 320
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 12,
+                  "height": 24
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              },
+              {
+                "fontSize": 16,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 14,
+                  "height": 29
+                },
+                "screen": {
+                  "width": 1054.666748046875,
+                  "height": 715.3333740234375
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 12,
+                  "height": 24
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 12,
+                  "height": 24
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              }
+            ],
+            "domFallback": true,
+            "webgpuRecovered": true
+          }
+        }
+      ],
+      "remainingProcesses": 0
+    },
+    {
+      "scale": 2,
+      "samples": [
+        {
+          "font": "anthropic-raw",
+          "family": "'Anthropic Mono', \"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 16.79998779296875,
+            "height": 36
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 1
+        },
+        {
+          "font": "anthropic",
+          "family": "'Anthropic Mono', \"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 17,
+            "height": 36
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 1,
+          "selection": "python",
+          "geometryChecks": {
+            "samples": [
+              {
+                "fontSize": 14,
+                "cols": 100,
+                "rows": 20,
+                "cell": {
+                  "width": 17,
+                  "height": 36
+                },
+                "screen": {
+                  "width": 850,
+                  "height": 360
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 17,
+                  "height": 36
+                },
+                "screen": {
+                  "width": 960.5,
+                  "height": 666
+                }
+              },
+              {
+                "fontSize": 16,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 19,
+                  "height": 40
+                },
+                "screen": {
+                  "width": 1073.5,
+                  "height": 740
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 17,
+                  "height": 36
+                },
+                "screen": {
+                  "width": 960.5,
+                  "height": 666
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 17,
+                  "height": 36
+                },
+                "screen": {
+                  "width": 960.5,
+                  "height": 666
+                }
+              }
+            ],
+            "domFallback": true,
+            "webgpuRecovered": true
+          }
+        },
+        {
+          "font": "fallback-raw",
+          "family": "\"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 16.40625,
+            "height": 32
+          },
+          "differentPixels": 119821,
+          "maxChannelDelta": 218
+        },
+        {
+          "font": "fallback",
+          "family": "\"Cascadia Code\", Consolas, \"SF Mono\", monospace",
+          "deviceCell": {
+            "width": 16,
+            "height": 32
+          },
+          "differentPixels": 0,
+          "maxChannelDelta": 2,
+          "selection": "python",
+          "geometryChecks": {
+            "samples": [
+              {
+                "fontSize": 14,
+                "cols": 100,
+                "rows": 20,
+                "cell": {
+                  "width": 16,
+                  "height": 32
+                },
+                "screen": {
+                  "width": 800,
+                  "height": 320
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 16,
+                  "height": 32
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              },
+              {
+                "fontSize": 16,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 19,
+                  "height": 38
+                },
+                "screen": {
+                  "width": 1073.5,
+                  "height": 703
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 16,
+                  "height": 32
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              },
+              {
+                "fontSize": 14,
+                "cols": 113,
+                "rows": 37,
+                "cell": {
+                  "width": 16,
+                  "height": 32
+                },
+                "screen": {
+                  "width": 904,
+                  "height": 592
+                }
+              }
+            ],
+            "domFallback": true,
+            "webgpuRecovered": true
+          }
+        }
+      ],
+      "remainingProcesses": 0
+    }
+  ],
+  "desktop": {
+    "view": "terminal",
+    "complete": true,
+    "frameTotal": 1,
+    "remainingFrames": 0,
+    "frames": [
+      {
+        "frameId": "77B53B2D711BB3181F9258EFE030224C",
+        "title": "Super High",
+        "terminal": {
+          "selector": ".terminal-host",
+          "secureContext": true,
+          "gpuAvailable": true,
+          "devicePixelRatio": 1.25,
+          "viewport": {
+            "width": 1500,
+            "height": 920
+          },
+          "hostTotal": 1,
+          "remainingHosts": 0,
+          "hosts": [
+            {
+              "visible": true,
+              "mounted": true,
+              "renderer": "webgpu",
+              "fallbackReason": null,
+              "rect": {
+                "x": 460,
+                "y": 107.5999984741211,
+                "width": 1039.2000732421875,
+                "height": 753.6000366210938
+              },
+              "canvasTotal": 1,
+              "remainingCanvases": 0,
+              "canvases": [
+                {
+                  "visible": true,
+                  "pixels": {
+                    "width": 1276,
+                    "height": 920
+                  },
+                  "rect": {
+                    "x": 460,
+                    "y": 107.5999984741211,
+                    "width": 1020.7999877929688,
+                    "height": 736
+                  }
+                }
+              ]
+            }
+          ],
+          "wasm": {
+            "observed": true,
+            "total": 1,
+            "remaining": 0,
+            "resources": [
+              {
+                "asset": "wraith_engine_bg-Daw1dUO5.wasm",
+                "decodedBytes": 2896765
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "errors": [],
+    "executable": ".superhigh/cache/desktop-runtime/super-high.exe",
+    "sha256": "20b5e46bb06ba3630f47fcf3cff935fb1237cb9375efaa31d975e402b2e44617",
+    "normalLaunchRestored": true
+  },
+  "captures": [
+    "anthropic-raw-125.png",
+    "anthropic-125.png",
+    "anthropic-reference-125.png"
+  ],
+  "limitations": [
+    "Synthetic glyph checks used isolated Edge instances with native process scale; the production Tauri WebView was checked at native 125%.",
+    "DOM fallback, recovery, mouse selection, terminal resize and font-size changes were checked; live model requests were not sent."
+  ]
+}

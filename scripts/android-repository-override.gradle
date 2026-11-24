@@ -1,0 +1,21 @@
+// Local-build override only. Does not edit global Gradle settings or the project repositories.
+def central = System.getenv('SUPERHIGH_ANDROID_MAVEN_CENTRAL')
+def google = System.getenv('SUPERHIGH_ANDROID_GOOGLE_MAVEN')
+if (central || google) {
+    gradle.beforeProject { project ->
+        [project.repositories, project.buildscript.repositories].each { repositories ->
+            // Try Central first so ordinary Java dependencies do not probe Google's Android repo.
+            if (central) repositories.maven { name = 'SuperHighLocalCentral'; url = project.uri(central) }
+            repositories.all { repository ->
+                if (repository instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository &&
+                    central && repository.url.host in ['repo.maven.apache.org', 'repo1.maven.org']) {
+                    repository.url = project.uri(central)
+                }
+                if (repository instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository &&
+                    google && repository.url.host in ['dl.google.com', 'maven.google.com']) {
+                    repository.url = project.uri(google)
+                }
+            }
+        }
+    }
+}

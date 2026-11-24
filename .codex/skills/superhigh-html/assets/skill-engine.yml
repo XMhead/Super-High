@@ -1,0 +1,233 @@
+schema: agent-skill-v1
+name: superhigh-html
+summary: superhigh-html 的领域操作与工作流
+methods:
+  agent_mcp_check_check:
+    summary: Check a deployed SuperHigh stdio MCP entry and read-only desktop bridge without creating tasks：check
+    runtime: python
+    entry: ../scripts/check-agent-mcp.py
+    keywords:
+    - SuperHigh MCP
+    - stdio 检查
+    - Agent 调度验收
+    argv:
+    - param: cli
+      flag: --cli
+    - param: timeout
+      flag: --timeout
+    - param: output
+      flag: --output
+    - param: mobile
+      flag: --mobile
+    params:
+      cli:
+        type: string
+        required: true
+        min_length: 1
+      timeout:
+        type: integer
+        default: 50
+      output:
+        type: string
+        min_length: 1
+      mobile:
+        type: boolean
+  cli_environment_inspect_inspect:
+    summary: Read model selection and session markers from exact Windows x64 process IDs without exposing credential values：inspect
+    runtime: python
+    entry: ../scripts/inspect-cli-environment.py
+    keywords:
+    - CLI 环境继承
+    - 模型污染
+    - 进程环境取证
+    argv:
+    - --json
+    - param: pid
+      flag: --pid
+    params:
+      pid:
+        type: integer
+        required: true
+  cli_environment_inspect_self_test:
+    summary: Read model selection and session markers from exact Windows x64 process IDs without exposing credential values：self-test
+    runtime: python
+    entry: ../scripts/inspect-cli-environment.py
+    keywords:
+    - CLI 环境继承
+    - 模型污染
+    - 进程环境取证
+    argv:
+    - --self-test
+    - --json
+    params: {}
+  desktop_preview_inspect_inspect:
+    summary: 按页面 URL 与可选 target ID 读取 HTML、IUI、聊天、主题、表单及通知的有界证据
+    runtime: node
+    entry: ../scripts/inspect-preview.mjs
+    keywords:
+    - HTML 图片不显示
+    - IUI 媒体取证
+    - 聊天历史与分栏取证
+    - 聊天消息接收确认
+    - 聊天模式仍加载终端
+    - 终端 WebGPU 与 DOM 回退
+    - Wraith WASM 加载与缩放
+    - Plan 与异步提问验收
+    - 内嵌界面主题颜色不一致
+    - 管家通知未出现
+    - Codex 队列通知
+    - 独立编辑器多窗口取证
+    - HTML 表单状态与参数传递
+    argv:
+    - param: cdp
+      flag: --cdp
+    - param: page_url
+      flag: --page-url
+    - param: target_id
+      flag: --target-id
+    - param: view
+      flag: --view
+    - param: frame_title
+      flag: --frame-title
+    - param: selector
+      flag: --selector
+    - param: theme_token
+      flag: --theme-token
+    - param: expect_renderer
+      flag: --expect-renderer
+    - param: limit
+      flag: --limit
+    params:
+      cdp:
+        type: string
+        required: true
+        min_length: 1
+      page_url:
+        type: string
+        required: true
+        min_length: 1
+      target_id:
+        type: string
+        min_length: 1
+      view:
+        type: string
+        required: true
+        enum: [html, iui, chat, notices, theme, element, terminal]
+      frame_title:
+        type: string
+        min_length: 1
+      selector:
+        type: string
+        min_length: 1
+      theme_token:
+        type: string
+        min_length: 1
+      expect_renderer:
+        type: string
+        enum: [webgpu, dom]
+      limit:
+        type: integer
+        default: 8
+  native_video_inspect_inspect:
+    summary: 读取指定桌面进程的原生视频窗口可见性和裁剪区域，可选输出目标窗口原分辨率 PNG
+    runtime: python
+    entry: ../scripts/inspect-native-video.py
+    keywords:
+    - MP4 只有进度没有画面
+    - 原生视频遮挡
+    - 视频裁剪区域
+    - HWND 取证
+    - 视频窗口截图
+    argv:
+    - param: pid
+      flag: --pid
+    - param: hwnd
+      flag: --hwnd
+    - param: output
+      flag: --output
+    - param: limit
+      flag: --limit
+    params:
+      pid:
+        type: integer
+        required: true
+      hwnd:
+        type: integer
+      output:
+        type: string
+        min_length: 1
+      limit:
+        type: integer
+        default: 8
+  phone_ui_check_check:
+    summary: Inspect and smoke-test the isolated real-phone SuperHigh WebView through its dedicated CDP：check
+    runtime: node
+    entry: ../scripts/check-phone-ui.mjs
+    keywords:
+    - USB 真机界面验收
+    - 手机独立显示
+    - 手机 CDP
+    argv:
+    - param: cdp
+      flag: --cdp
+    - param: smoke
+      flag: --smoke
+    - param: crop
+      flag: --crop
+    - param: output
+      flag: --output
+    params:
+      cdp:
+        type: string
+        required: true
+        min_length: 1
+      smoke:
+        type: boolean
+      crop:
+        type: string
+        min_length: 1
+      output:
+        type: string
+        min_length: 1
+  phone_continuity_check_sample:
+    summary: Read-only sampling of main-screen app identity and target audio during USB debugging or updates：sample
+    runtime: python
+    entry: ../scripts/check-phone-continuity.py
+    keywords:
+    - 主屏不受影响
+    - 后台更新不抢主屏
+    - 手机视频连续性
+    argv:
+    - param: device
+      flag: --device
+    - param: package
+      flag: --package
+    - param: duration
+      flag: --duration
+    - param: require_audio
+      flag: --require-audio
+    - param: output
+      flag: --output
+    - param: adb
+      flag: --adb
+    params:
+      device:
+        type: string
+        required: true
+        min_length: 1
+      package:
+        type: string
+        min_length: 1
+      duration:
+        type: integer
+        default: 90
+      require_audio:
+        type: boolean
+      output:
+        type: string
+        required: true
+        min_length: 1
+      adb:
+        type: string
+        min_length: 1
+workflows: {}

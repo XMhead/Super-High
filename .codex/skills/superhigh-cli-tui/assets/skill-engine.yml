@@ -1,0 +1,106 @@
+schema: agent-skill-v1
+name: superhigh-cli-tui
+methods:
+  terminal_capture:
+    summary: 用隔离 Codex 配置采集一次指定模型的 PTY 输出，并记录输入哈希和进程收尾
+    runtime: python
+    entry: ../scripts/record-codex-terminal.py
+    keywords: [Codex 终端采集, 渲染基准]
+    params:
+      workdir: {type: string, required: true, scope: project}
+      output: {type: string, required: true, scope: project}
+      cli: {type: string, required: true, min_length: 1}
+      codex: {type: string, required: true, min_length: 1}
+      model: {type: string, default: gpt-6.1-terra}
+      source_home: {type: string, min_length: 1}
+      cols: {type: integer, default: 120}
+      rows: {type: integer, default: 40}
+      timeout: {type: integer, default: 180}
+    argv:
+    - {param: workdir, flag: --workdir}
+    - {param: output, flag: --output}
+    - {param: cli, flag: --cli}
+    - {param: codex, flag: --codex}
+    - {param: model, flag: --model}
+    - {param: source_home, flag: --source-home}
+    - {param: cols, flag: --cols}
+    - {param: rows, flag: --rows}
+    - {param: timeout, flag: --timeout}
+  terminal_benchmark:
+    summary: 在独立浏览器中交错回放 xterm WebGL 与 Wraith，分开测量公开写入和 GPU 完成吞吐
+    runtime: node
+    entry: ../scripts/benchmark-terminal-renderers.mjs
+    keywords: [终端性能对照, WebGPU, WebGL, 本地压力测试]
+    params:
+      deps: {type: string, required: true, scope: project}
+      capture: {type: string, required: true, scope: project}
+      output: {type: string, required: true, scope: project}
+      browser: {type: string, min_length: 1}
+      rounds: {type: integer, default: 5}
+      updates: {type: integer, default: 512}
+      port: {type: integer, default: 1438}
+      cdp_port: {type: integer, default: 9348}
+      smoke: {type: boolean, default: false}
+      checks_only: {type: boolean, default: false}
+      timing_only: {type: boolean, default: false}
+      dprs: {type: string, default: '1'}
+      native_scale: {type: number}
+      scenes: {type: string, default: 'sparse,logs,dense'}
+    argv:
+    - {param: deps, flag: --deps}
+    - {param: capture, flag: --capture}
+    - {param: output, flag: --output}
+    - {param: browser, flag: --browser}
+    - {param: rounds, flag: --rounds}
+    - {param: updates, flag: --updates}
+    - {param: port, flag: --port}
+    - {param: cdp_port, flag: --cdp-port}
+    - {param: smoke, flag: --smoke}
+    - {param: checks_only, flag: --checks-only}
+    - {param: timing_only, flag: --timing-only}
+    - {param: dprs, flag: --dprs}
+    - {param: native_scale, flag: --native-scale}
+    - {param: scenes, flag: --scenes}
+  terminal_summary:
+    summary: 校验渲染对照的成对数据、像素取样及进程收尾，按实测值生成 IUI 报告
+    runtime: python
+    entry: ../scripts/summarize-terminal-benchmark.py
+    keywords: [终端基准报告, 渲染对照 IUI]
+    params:
+      source: {type: string, required: true, scope: project}
+      output: {type: string, required: true, scope: project}
+      ui: {type: string, required: true, scope: project}
+      cpu: {type: string, min_length: 1}
+    argv:
+    - {param: source, flag: --source}
+    - {param: output, flag: --output}
+    - {param: ui, flag: --ui}
+    - {param: cpu, flag: --cpu}
+workflows:
+  review_evidence:
+    summary: 根据证据审核CLI 与终端会话
+    keywords:
+    - CLI 与终端会话
+    inputs:
+      evidence:
+        type: string
+        required: true
+        description: 目标、来源与已取得的具体证据
+    steps:
+    - id: review
+      judge: 会话协议、实际入口与运行证据是否足以支持结论？
+      evidence:
+        $ref: inputs.evidence
+      returns:
+        passed:
+          type: boolean
+          required: true
+        reason:
+          type: string
+          required: true
+    - require:
+        $ref: steps.review.result.passed
+      message: 证据尚不足以通过审核
+    outputs:
+      review:
+        $ref: steps.review.result

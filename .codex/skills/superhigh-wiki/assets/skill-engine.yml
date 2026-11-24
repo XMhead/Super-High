@@ -1,0 +1,30 @@
+schema: agent-skill-v1
+name: superhigh-wiki
+workflows:
+  review_evidence:
+    summary: 根据证据审核Super High 功能百科
+    keywords:
+    - Super High 功能百科
+    inputs:
+      evidence:
+        type: string
+        required: true
+        description: 目标、来源与已取得的具体证据
+    steps:
+    - id: review
+      judge: 结论是否由当前源码或真实界面证据支持并明确适用范围？
+      evidence:
+        $ref: inputs.evidence
+      returns:
+        passed:
+          type: boolean
+          required: true
+        reason:
+          type: string
+          required: true
+    - require:
+        $ref: steps.review.result.passed
+      message: 证据尚不足以通过审核
+    outputs:
+      review:
+        $ref: steps.review.result
